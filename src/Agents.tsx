@@ -1,0 +1,885 @@
+import React, { useState } from "react";
+import { View, Image } from "react-native";
+import * as Speech from "expo-speech";
+import {
+  T,
+  Button,
+  Field,
+  Heading,
+  Card,
+  Section,
+  Stats,
+  Tabs,
+  Choices,
+  Toggle,
+  Empty,
+  Row,
+  Badge,
+  Sheet,
+  IB,
+  Icon,
+  art,
+  s,
+  C,
+} from "./ui";
+import {
+  templates,
+  makeAgent,
+  editorTabs,
+  voices,
+  languages,
+  integrations,
+  Agent,
+} from "./catalog";
+import { useStore } from "./store";
+export function AgentHome({ open }: any) {
+  const { data, set } = useStore();
+  const [brief, sb] = useState("");
+  const [query, sq] = useState("");
+  const [actions, sa] = useState<Agent | null>(null);
+  const create = (name: string) => {
+    const a = makeAgent(name, brief);
+    set((d) => ({ ...d, agents: [a, ...d.agents] }));
+    open("Agent", a.id);
+  };
+  return (
+    <>
+      <Heading
+        eyebrow="YOUR CALLING WORKSPACE"
+        title={"Good afternoon, " + data.profile.name.split(" ")[0]}
+        sub={
+          "Create a new assistant or manage the " +
+          data.agents.length +
+          " you already have."
+        }
+      />
+      <View style={{ padding: 10, borderRadius: 27, overflow: "hidden" }}>
+        <Image
+          source={art.lilac}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+          }}
+        />
+        <Card style={{ borderRadius: 20, padding: 17 }}>
+          <Field
+            multiline
+            placeholder="Describe the agent you want to build…"
+            value={brief}
+            onChangeText={sb}
+          />
+          <View style={{ gap: 8 }}>
+            <Button
+              small
+              outline
+              label="Start from scratch"
+              icon="edit-3"
+              onPress={() => create("New Agent")}
+            />
+            <Button
+              small
+              label="Generate"
+              icon="zap"
+              disabled={!brief.trim()}
+              onPress={() =>
+                create(brief.length > 30 ? brief.slice(0, 27) + "…" : brief)
+              }
+            />
+          </View>
+        </Card>
+      </View>
+      <T style={s.eyebrow}>OR START FROM A TEMPLATE</T>
+      <View style={s.wrap}>
+        {templates.map((x, i) => (
+          <Card
+            key={x}
+            onPress={() =>
+              sb(
+                "A " +
+                  x.toLowerCase() +
+                  " that helps customers with questions and captures the next step.",
+              )
+            }
+            style={{ flexBasis: "46%", flexGrow: 1, padding: 14, gap: 12 }}
+          >
+            <Icon
+              name={
+                [
+                  "coffee",
+                  "target",
+                  "calendar",
+                  "headphones",
+                  "phone-outgoing",
+                  "credit-card",
+                  "clipboard",
+                  "box",
+                ][i]
+              }
+            />
+            <T style={{ fontFamily: "GeistSemi", fontSize: 12 }}>{x}</T>
+          </Card>
+        ))}
+      </View>
+      <Section title={"Your assistants  " + data.agents.length}>
+        <Field
+          placeholder="Search assistants…"
+          value={query}
+          onChangeText={sq}
+        />
+        {data.agents
+          .filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
+          .map((a, i) => (
+            <Card key={a.id} onPress={() => open("Agent", a.id)}>
+              <View style={s.between}>
+                <Image
+                  source={i % 2 ? art.cobalt : art.orb}
+                  style={{ width: 46, height: 46, borderRadius: 23 }}
+                />
+                <Badge label={a.live ? "Live" : "Draft"} green={a.live} />
+                <IB
+                  name="more-horizontal"
+                  label={"Actions for " + a.name}
+                  onPress={() => sa(a)}
+                />
+              </View>
+              <T style={s.h2}>{a.name}</T>
+              <T style={{ color: C.muted, fontSize: 12 }}>
+                {a.voice} · {a.languages.join(", ")} ·{" "}
+                {data.files.filter((f) => f.agent === a.id).length} files
+              </T>
+              <View
+                style={[
+                  s.between,
+                  { borderTopWidth: 1, borderColor: C.line, paddingTop: 13 },
+                ]}
+              >
+                <T style={{ fontSize: 12, color: C.muted }}>0 calls</T>
+                <T style={{ fontSize: 12, color: C.muted }}>0% success</T>
+                <Icon name="arrow-up-right" size={17} />
+              </View>
+            </Card>
+          ))}
+        {!data.agents.filter((a) =>
+          a.name.toLowerCase().includes(query.toLowerCase()),
+        ).length && (
+          <Empty
+            title="No assistants found"
+            sub="Try another name or build a new agent."
+          />
+        )}
+      </Section>
+      {actions && (
+        <Sheet title={actions.name} onClose={() => sa(null)}>
+          <Button
+            outline
+            label="Edit assistant"
+            onPress={() => {
+              open("Agent", actions.id);
+              sa(null);
+            }}
+          />
+          <Button
+            outline
+            label="Duplicate"
+            onPress={() => {
+              set((d) => ({
+                ...d,
+                agents: [
+                  ...d.agents,
+                  {
+                    ...actions,
+                    id: Date.now().toString(),
+                    name: actions.name + " copy",
+                    live: false,
+                  },
+                ],
+              }));
+              sa(null);
+            }}
+          />
+          <Button
+            outline
+            label="Delete local assistant"
+            onPress={() => {
+              set((d) => ({
+                ...d,
+                agents: d.agents.filter((a) => a.id !== actions.id),
+              }));
+              sa(null);
+            }}
+          />
+        </Sheet>
+      )}
+    </>
+  );
+}
+export function AgentEditor({ id, open, notify }: any) {
+  const { data, set } = useStore();
+  const a = data.agents.find((x) => x.id === id);
+  const [tab, st] = useState("Details");
+  const [sheet, ss] = useState("");
+  const [varType, svt] = useState("Input");
+  const [vn, svn] = useState("");
+  const [vv, svv] = useState("");
+  const [query, sq] = useState("");
+  const [lang, sl] = useState("All languages");
+  const [gender, sg] = useState("All genders");
+  const [voiceTab, svTab] = useState("AI voices");
+  const [testMode, stm] = useState("Chat");
+  const [message, sm] = useState("");
+  const [chat, sc] = useState<string[]>([]);
+  const [testing, sTesting] = useState(false);
+  if (!a)
+    return (
+      <Empty
+        title="Assistant unavailable"
+        sub="Return to AI Agents and choose another assistant."
+      />
+    );
+  const patch = (p: Partial<Agent>) =>
+    set((d) => ({
+      ...d,
+      agents: d.agents.map((x) => (x.id === id ? { ...x, ...p } : x)),
+    }));
+  const setting = (k: string, v: any) =>
+    patch({ settings: { ...a.settings, [k]: v } });
+  const toggle = (k: string, sub?: string) => (
+    <Toggle
+      key={k}
+      label={k}
+      sub={sub}
+      value={a.settings[k]}
+      onChange={(v: boolean) => setting(k, v)}
+    />
+  );
+  const input = (k: string, suffix = "") => (
+    <Field
+      key={k}
+      label={k + suffix}
+      value={String(a.settings[k] ?? "")}
+      onChangeText={(v: string) => setting(k, v)}
+    />
+  );
+  return (
+    <>
+      <View style={s.between}>
+        <Image
+          source={art.orb}
+          style={{ width: 45, height: 45, borderRadius: 23 }}
+        />
+        <View style={{ flex: 1 }}>
+          <T style={s.h2}>{a.name}</T>
+          <T style={{ fontSize: 11, color: C.green }}>✓ Saved on this device</T>
+        </View>
+        <Button
+          small
+          label="Test"
+          icon="play"
+          onPress={() => ss("Test assistant")}
+        />
+      </View>
+      <Toggle
+        label="Live"
+        sub="Demo status — no calls are placed."
+        value={a.live}
+        onChange={(v: boolean) => patch({ live: v })}
+      />
+      <Tabs items={editorTabs} value={tab} onChange={st} />
+      {tab === "Details" && (
+        <>
+          <Field
+            label="Assistant name"
+            value={a.name}
+            onChangeText={(name: string) => patch({ name })}
+          />
+          <Card>
+            <Section
+              title="Voice"
+              action={
+                <Button
+                  small
+                  outline
+                  label="Edit"
+                  onPress={() => ss("Choose a voice")}
+                />
+              }
+            >
+              <View style={s.between}>
+                <View style={{ gap: 5 }}>
+                  <T style={s.h2}>{a.voice}</T>
+                  <T style={s.sub}>
+                    This is the voice your assistant speaks with.
+                  </T>
+                </View>
+              </View>
+            </Section>
+            <Row
+              title="Languages"
+              sub={a.languages.join(" · ")}
+              onPress={() => ss("Languages")}
+            />
+          </Card>
+          <Section
+            title="Instructions"
+            action={
+              <IB
+                name="zap"
+                label="Agent builder"
+                onPress={() => ss("Agent builder")}
+              />
+            }
+          >
+            <T style={s.sub}>
+              Your agent reads these sections from top to bottom.
+            </T>
+            {a.sections.map((section, i) => (
+              <Card key={i}>
+                <View style={s.between}>
+                  <T style={{ fontFamily: "GeistSemi", flex: 1 }}>
+                    {section.title}
+                  </T>
+                  <IB
+                    name="trash-2"
+                    label={"Delete " + section.title}
+                    onPress={() =>
+                      patch({ sections: a.sections.filter((_, j) => i !== j) })
+                    }
+                  />
+                </View>
+                <Field
+                  multiline
+                  value={section.text}
+                  onChangeText={(v: string) =>
+                    patch({
+                      sections: a.sections.map((x, j) =>
+                        j === i ? { ...x, text: v } : x,
+                      ),
+                    })
+                  }
+                />
+                <Toggle
+                  label="Use this section"
+                  value={section.enabled}
+                  onChange={(v: boolean) =>
+                    patch({
+                      sections: a.sections.map((x, j) =>
+                        j === i ? { ...x, enabled: v } : x,
+                      ),
+                    })
+                  }
+                />
+              </Card>
+            ))}
+            <Button
+              outline
+              label="Add section"
+              icon="plus"
+              onPress={() => ss("Add section")}
+            />
+          </Section>
+        </>
+      )}
+      {tab === "Variables" && (
+        <>
+          <Tabs items={["Input", "Output"]} value={varType} onChange={svt} />
+          <Heading
+            title={varType + " variables"}
+            sub={
+              varType === "Input"
+                ? "Known before the call. Use {{name}} in your instructions; the default is used when no value is supplied."
+                : "Details your agent should capture during the call."
+            }
+          />
+          {a.variables
+            .filter((x) => x.type === varType)
+            .map((v, i) => (
+              <Card key={i}>
+                <Row
+                  title={v.name}
+                  sub={v.value || "No default"}
+                  right={
+                    <IB
+                      name="trash-2"
+                      onPress={() =>
+                        patch({ variables: a.variables.filter((x) => x !== v) })
+                      }
+                    />
+                  }
+                />
+              </Card>
+            ))}
+          <Button
+            label={"Add " + varType.toLowerCase() + " variable"}
+            icon="plus"
+            onPress={() => ss("Add variable")}
+          />
+        </>
+      )}
+      {tab === "Call Settings" && (
+        <>
+          <Card>
+            <T style={s.h2}>Speaking</T>
+            {input("Speaking speed", " (0.5× – 2×)")}
+            <T style={s.label}>Delivery</T>
+            <Choices
+              items={["Neutral", "Cheerful", "Excited", "Empathetic", "Calm"]}
+              value={a.settings.Delivery}
+              onChange={(v: string) => setting("Delivery", v)}
+            />
+            <T style={s.label}>Personality</T>
+            <Choices
+              items={[
+                "Professional",
+                "Friendly",
+                "Empathetic",
+                "Energetic",
+                "Concise",
+              ]}
+              value={a.settings.Personality}
+              onChange={(v: string) => setting("Personality", v)}
+            />
+            {toggle("Filler phrases", "Say something while the agent thinks.")}
+          </Card>
+          <Card>
+            <T style={s.h2}>Listening</T>
+            {input("Wait before replying", " (seconds)")}
+            {toggle("Let callers interrupt")}
+            {input("Silence before it checks in", " (seconds)")}
+            {input("How many times it checks in")}
+            {input("What it says into the silence")}
+          </Card>
+          <Card>
+            <T style={s.h2}>Handing over to a person</T>
+            {toggle("Transfer to a person")}
+            {a.settings["Transfer to a person"] && (
+              <Field
+                label="Transfer number"
+                value={String(a.settings["Transfer number"] || "")}
+                onChangeText={(v: string) => setting("Transfer number", v)}
+              />
+            )}
+          </Card>
+          <Card>
+            <T style={s.h2}>Ending the call</T>
+            {input("Maximum length", " (minutes)")}
+            {input("Phrases that end the call")}
+          </Card>
+          <Card>
+            <T style={s.h2}>Background sound</T>
+            {toggle("Background sound")}
+          </Card>
+          <Card>
+            <T style={s.h2}>Post-call analytics</T>
+            <T style={s.sub}>Report on these calls</T>
+            {["Completed", "Voicemail", "No Answer", "Busy", "Failed"].map(
+              (x) => toggle(x),
+            )}
+            <T style={s.sub}>What the report contains</T>
+            {["Summary", "Transcript", "Caller mood", "Captured details"].map(
+              (x) => toggle(x),
+            )}
+            {toggle("Send each post-call report to your server")}
+            {input("Webhook address")}
+            <T style={{ fontSize: 11, color: C.muted }}>
+              Saved locally. No requests are sent.
+            </T>
+          </Card>
+        </>
+      )}
+      {tab === "Integrations" && (
+        <>
+          <Heading
+            title="Connected apps"
+            sub="Switch an app on for just this assistant."
+          />
+          <Button
+            outline
+            label="Manage connections"
+            onPress={() => open("Connections")}
+          />
+          {integrations.map((x) => (
+            <Card key={x}>
+              <Toggle
+                label={x}
+                sub={
+                  data.connections.includes(x)
+                    ? "Connected locally"
+                    : "Demo connection"
+                }
+                value={a.connections.includes(x)}
+                onChange={(v: boolean) =>
+                  patch({
+                    connections: v
+                      ? [...a.connections, x]
+                      : a.connections.filter((z) => z !== x),
+                  })
+                }
+              />
+            </Card>
+          ))}
+          <Button
+            outline
+            label="Add custom API"
+            onPress={() => open("Connections")}
+          />
+        </>
+      )}
+      {tab === "Knowledge" && (
+        <>
+          <Stats
+            items={[
+              [
+                "Sources",
+                String(data.files.filter((f) => f.agent === id).length),
+              ],
+              [
+                "Indexed",
+                String(data.files.filter((f) => f.agent === id).length),
+              ],
+            ]}
+          />
+          <Button
+            label="Manage knowledge"
+            icon="book-open"
+            onPress={() => open("Knowledge Base", id)}
+          />
+          {data.files
+            .filter((f) => f.agent === id)
+            .map((f) => (
+              <Card key={f.id}>
+                <T>{f.name}</T>
+                <Badge label="Indexed locally" green />
+              </Card>
+            ))}
+          <Field
+            label="Website address"
+            value={vv}
+            onChangeText={svv}
+            placeholder="https://your-business.com"
+          />
+          <Button
+            outline
+            label="Add website"
+            disabled={!/^https?:\/\/.+\..+/.test(vv)}
+            onPress={() => {
+              set((d) => ({
+                ...d,
+                files: [
+                  ...d.files,
+                  {
+                    id: Date.now().toString(),
+                    name: vv,
+                    agent: id,
+                    size: 0,
+                    kind: "Website",
+                  },
+                ],
+              }));
+              svv("");
+              notify("Website saved locally; no crawling is performed.");
+            }}
+          />
+        </>
+      )}
+      {tab === "Recent Calls" && (
+        <>
+          <Stats
+            items={[
+              ["Calls handled", "0"],
+              ["People reached", "0"],
+              ["Total talk time", "0s"],
+              ["Answer rate", "0%"],
+            ]}
+          />
+          <Empty
+            icon="phone"
+            title="No calls yet"
+            sub="Test your agent locally or explore the Call Logs module."
+            label="View call logs"
+            onPress={() => open("Call Logs")}
+          />
+        </>
+      )}
+      {!!sheet && (
+        <Sheet
+          title={sheet}
+          onClose={() => {
+            ss("");
+            Speech.stop();
+            sTesting(false);
+          }}
+        >
+          {sheet === "Languages" && (
+            <>
+              <Choices
+                items={languages}
+                value={a.languages}
+                multiple
+                onChange={(v: string[]) => v.length && patch({ languages: v })}
+              />
+              <Button label="Done" onPress={() => ss("")} />
+            </>
+          )}
+          {sheet === "Choose a voice" && (
+            <>
+              <Tabs
+                items={["AI voices", "My voices"]}
+                value={voiceTab}
+                onChange={svTab}
+              />
+              <Field
+                placeholder="Search voices…"
+                value={query}
+                onChangeText={sq}
+              />
+              <Tabs
+                items={[
+                  "All languages",
+                  "English",
+                  "Telugu",
+                  "Hindi",
+                  "Tamil",
+                  "French",
+                ]}
+                value={lang}
+                onChange={sl}
+              />
+              <Tabs
+                items={["All genders", "Female", "Male", "Neutral"]}
+                value={gender}
+                onChange={sg}
+              />
+              {(voiceTab === "AI voices"
+                ? voices
+                : data.clones.map((c) => [c.name, c.language, c.gender])
+              )
+                .filter(
+                  (v) =>
+                    v[0].toLowerCase().includes(query.toLowerCase()) &&
+                    (lang === "All languages" || v[1] === lang) &&
+                    (gender === "All genders" || v[2] === gender),
+                )
+                .map((v) => (
+                  <Card key={v[0]}>
+                    <Row
+                      title={v[0]}
+                      sub={v[1] + " · " + v[2]}
+                      onPress={() => patch({ voice: v[0] })}
+                      right={
+                        <Badge
+                          label={a.voice === v[0] ? "Selected" : "Select"}
+                          green={a.voice === v[0]}
+                        />
+                      }
+                    />
+                    <Button
+                      outline
+                      small
+                      label="Preview using device voice"
+                      icon="play"
+                      onPress={() =>
+                        Speech.speak(
+                          "Hello, I am " + v[0] + ". How can I help you today?",
+                        )
+                      }
+                    />
+                  </Card>
+                ))}
+              <T style={s.sub}>
+                Audio preview uses your device’s speech voice, not the website’s
+                voice model.
+              </T>
+              <Button
+                label="Done"
+                onPress={() => {
+                  ss("");
+                  Speech.stop();
+                }}
+              />
+            </>
+          )}
+          {sheet === "Add variable" && (
+            <>
+              <Field
+                label="Variable name"
+                value={vn}
+                onChangeText={svn}
+                placeholder="customer_name"
+              />
+              <Field
+                label={varType === "Input" ? "Default value" : "Description"}
+                value={vv}
+                onChangeText={svv}
+              />
+              <Button
+                label="Add variable"
+                disabled={
+                  !/^[a-zA-Z_]\w*$/.test(vn) ||
+                  a.variables.some((v) => v.name === vn)
+                }
+                onPress={() => {
+                  patch({
+                    variables: [
+                      ...a.variables,
+                      { name: vn, value: vv, type: varType },
+                    ],
+                  });
+                  svn("");
+                  svv("");
+                  ss("");
+                }}
+              />
+            </>
+          )}
+          {sheet === "Add section" && (
+            <>
+              <Field label="Section title" value={vn} onChangeText={svn} />
+              <Button
+                label="Add section"
+                disabled={!vn.trim()}
+                onPress={() => {
+                  patch({
+                    sections: [
+                      ...a.sections,
+                      { title: vn, text: "", enabled: true },
+                    ],
+                  });
+                  svn("");
+                  ss("");
+                }}
+              />
+            </>
+          )}
+          {sheet === "Agent builder" && (
+            <>
+              <Field
+                label="Describe a change"
+                multiline
+                value={vv}
+                onChangeText={svv}
+              />
+              <T style={s.sub}>
+                Demo mode adds your request as a new instruction section.
+              </T>
+              <Button
+                label="Apply instructions"
+                disabled={!vv.trim()}
+                onPress={() => {
+                  patch({
+                    sections: [
+                      ...a.sections,
+                      {
+                        title: "Additional instructions",
+                        text: vv,
+                        enabled: true,
+                      },
+                    ],
+                  });
+                  svv("");
+                  ss("");
+                }}
+              />
+            </>
+          )}
+          {sheet === "Test assistant" && (
+            <>
+              <Tabs
+                items={["Voice", "Phone", "Chat"]}
+                value={testMode}
+                onChange={stm}
+              />
+              {testMode === "Chat" ? (
+                <>
+                  <Card>
+                    <T style={s.sub}>
+                      Local scripted preview. No AI service is connected.
+                    </T>
+                    {chat.map((m, i) => (
+                      <T key={i} style={{ fontSize: 14, lineHeight: 22 }}>
+                        {m}
+                      </T>
+                    ))}
+                  </Card>
+                  <Field
+                    placeholder="Send a message…"
+                    value={message}
+                    onChangeText={sm}
+                  />
+                  <Button
+                    label="Send"
+                    disabled={!message.trim()}
+                    onPress={() => {
+                      sc([
+                        ...chat,
+                        "You: " + message,
+                        a.name +
+                          ": Thanks for reaching out. I can help with your enquiry and collect your preferred next step.",
+                      ]);
+                      sm("");
+                    }}
+                  />
+                </>
+              ) : testMode === "Voice" ? (
+                <>
+                  <Image
+                    source={art.orb}
+                    style={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: 60,
+                      alignSelf: "center",
+                    }}
+                  />
+                  <T style={s.sub}>
+                    Listen to a local greeting using device speech. No
+                    microphone or real call is used.
+                  </T>
+                  <Button
+                    label={testing ? "Stop preview" : "Play demo greeting"}
+                    icon={testing ? "square" : "play"}
+                    onPress={() => {
+                      if (testing) {
+                        Speech.stop();
+                        sTesting(false);
+                      } else {
+                        sTesting(true);
+                        Speech.speak(
+                          "Hello, I am " +
+                            a.name +
+                            ". How can I help you today?",
+                          { onDone: () => sTesting(false) },
+                        );
+                      }
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  <Field
+                    label="Phone number"
+                    placeholder="+91"
+                    value={vv}
+                    onChangeText={svv}
+                  />
+                  <T style={s.sub}>
+                    Phone calling is disconnected in this frontend demo.
+                  </T>
+                  <Button
+                    label="Preview call request"
+                    disabled={vv.replace(/\D/g, "").length < 10}
+                    onPress={() =>
+                      notify("Demo call request validated. No call was placed.")
+                    }
+                  />
+                </>
+              )}
+            </>
+          )}
+        </Sheet>
+      )}
+    </>
+  );
+}

@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "HeyRik",
+    "slug": "heyrik-apk",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/brand/app-icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.heyrik.mobile"
+    },
+    "android": {
+      "package": "com.heyrik.mobile",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/app-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/brand/short.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-document-picker",
+      "expo-sharing",
+      "expo-router",
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/brand/long.png",
+          "imageWidth": 180,
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "scheme": "heyrik"
+  }
+}
