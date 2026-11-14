@@ -1,5 +1,7 @@
+import { Disclosure } from "./components/Disclosure";
+import { Select } from "./components/Select";
 import React, { useState } from "react";
-import { View, Image } from "react-native";
+import { View, Image, Pressable } from "react-native";
 import * as Speech from "expo-speech";
 import {
   T,
@@ -37,6 +39,7 @@ export function AgentHome({ open }: any) {
   const [brief, sb] = useState("");
   const [query, sq] = useState("");
   const [actions, sa] = useState<Agent | null>(null);
+  const [showTemplates, stemplates] = useState(false);
   const create = (name: string) => {
     const a = makeAgent(name, brief);
     set((d) => ({ ...d, agents: [a, ...d.agents] }));
@@ -45,7 +48,6 @@ export function AgentHome({ open }: any) {
   return (
     <>
       <Heading
-        eyebrow="YOUR CALLING WORKSPACE"
         title={"Good afternoon, " + data.profile.name.split(" ")[0]}
         sub={
           "Create a new assistant or manage the " +
@@ -53,7 +55,15 @@ export function AgentHome({ open }: any) {
           " you already have."
         }
       />
-      <View style={{ padding: 10, borderRadius: 27, overflow: "hidden" }}>
+      <View
+        style={{
+          padding: 6,
+          borderRadius: 25,
+          overflow: "hidden",
+          width: "100%",
+          maxWidth: "100%",
+        }}
+      >
         <Image
           source={art.lilac}
           style={{
@@ -67,62 +77,76 @@ export function AgentHome({ open }: any) {
         <Card style={{ borderRadius: 20, padding: 17 }}>
           <Field
             multiline
+            inputStyle={{ borderWidth: 0, paddingHorizontal: 0, minHeight: 96 }}
             placeholder="Describe the agent you want to build…"
             value={brief}
             onChangeText={sb}
           />
-          <View style={{ gap: 8 }}>
+          <View style={{ gap: 8, flexDirection: "row" }}>
             <Button
+              style={{ flex: 1, paddingHorizontal: 8 }}
               small
               outline
-              label="Start from scratch"
+              label="Blank"
               icon="edit-3"
               onPress={() => create("New Agent")}
             />
             <Button
               small
-              label="Generate"
+              label="Create"
+              style={{ flex: 1, paddingHorizontal: 8 }}
               icon="zap"
               disabled={!brief.trim()}
               onPress={() =>
-                create(brief.length > 30 ? brief.slice(0, 27) + "…" : brief)
+                create(
+                  templates.find((name) =>
+                    brief.toLowerCase().startsWith("a " + name.toLowerCase()),
+                  ) || "New assistant",
+                )
               }
             />
           </View>
         </Card>
       </View>
-      <T style={s.eyebrow}>OR START FROM A TEMPLATE</T>
-      <View style={s.wrap}>
-        {templates.map((x, i) => (
-          <Card
-            key={x}
-            onPress={() =>
-              sb(
-                "A " +
-                  x.toLowerCase() +
-                  " that helps customers with questions and captures the next step.",
-              )
-            }
-            style={{ flexBasis: "46%", flexGrow: 1, padding: 14, gap: 12 }}
-          >
-            <Icon
-              name={
+      <View style={s.between}>
+        <Button
+          small
+          outline
+          label="Browse templates"
+          icon="grid"
+          onPress={() => stemplates(true)}
+        />
+      </View>
+      {showTemplates && (
+        <Sheet title="Start from a template" onClose={() => stemplates(false)}>
+          {templates.map((name, i) => (
+            <Row
+              key={name}
+              title={name}
+              sub={
                 [
-                  "coffee",
-                  "target",
-                  "calendar",
-                  "headphones",
-                  "phone-outgoing",
-                  "credit-card",
-                  "clipboard",
-                  "box",
+                  "Welcome callers and answer FAQs",
+                  "Qualify leads and capture details",
+                  "Book and confirm appointments",
+                  "Answer questions from your knowledge",
+                  "Introduce your offer",
+                  "Follow up on payments",
+                  "Collect customer feedback",
+                  "Share order updates",
                 ][i]
               }
+              onPress={() => {
+                sb(
+                  "A " +
+                    name.toLowerCase() +
+                    " that helps customers and captures the next step.",
+                );
+                stemplates(false);
+              }}
             />
-            <T style={{ fontFamily: "GeistSemi", fontSize: 12 }}>{x}</T>
-          </Card>
-        ))}
-      </View>
+          ))}
+        </Sheet>
+      )}
       <Section title={"Your assistants  " + data.agents.length}>
         <Field
           placeholder="Search assistants…"
@@ -132,7 +156,7 @@ export function AgentHome({ open }: any) {
         {data.agents
           .filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
           .map((a, i) => (
-            <Card key={a.id} onPress={() => open("Agent", a.id)}>
+            <Card key={a.id}>
               <View style={s.between}>
                 <Image
                   source={i % 2 ? art.cobalt : art.orb}
@@ -145,21 +169,28 @@ export function AgentHome({ open }: any) {
                   onPress={() => sa(a)}
                 />
               </View>
-              <T style={s.h2}>{a.name}</T>
-              <T style={{ color: C.muted, fontSize: 12 }}>
-                {a.voice} · {a.languages.join(", ")} ·{" "}
-                {data.files.filter((f) => f.agent === a.id).length} files
-              </T>
-              <View
-                style={[
-                  s.between,
-                  { borderTopWidth: 1, borderColor: C.line, paddingTop: 13 },
-                ]}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={"Open " + a.name}
+                onPress={() => open("Agent", a.id)}
+                style={{ gap: 12 }}
               >
-                <T style={{ fontSize: 12, color: C.muted }}>0 calls</T>
-                <T style={{ fontSize: 12, color: C.muted }}>0% success</T>
-                <Icon name="arrow-up-right" size={17} />
-              </View>
+                <T style={s.h2}>{a.name}</T>
+                <T style={{ color: C.muted, fontSize: 12 }}>
+                  {a.voice} · {a.languages.join(", ")} ·{" "}
+                  {data.files.filter((f) => f.agent === a.id).length} files
+                </T>
+                <View
+                  style={[
+                    s.between,
+                    { borderTopWidth: 1, borderColor: C.line, paddingTop: 13 },
+                  ]}
+                >
+                  <T style={{ fontSize: 12, color: C.muted }}>0 calls</T>
+                  <T style={{ fontSize: 12, color: C.muted }}>0% success</T>
+                  <Icon name="arrow-up-right" size={17} />
+                </View>
+              </Pressable>
             </Card>
           ))}
         {!data.agents.filter((a) =>
@@ -272,7 +303,7 @@ export function AgentEditor({ id, open, notify }: any) {
         />
         <View style={{ flex: 1 }}>
           <T style={s.h2}>{a.name}</T>
-          <T style={{ fontSize: 11, color: C.green }}>✓ Saved on this device</T>
+          <T style={{ fontSize: 11, color: C.green }}>Saved</T>
         </View>
         <Button
           small
@@ -283,11 +314,16 @@ export function AgentEditor({ id, open, notify }: any) {
       </View>
       <Toggle
         label="Live"
-        sub="Demo status — no calls are placed."
         value={a.live}
         onChange={(v: boolean) => patch({ live: v })}
       />
-      <Tabs items={editorTabs} value={tab} onChange={st} />
+      <Select
+        label="Agent section"
+        value={tab}
+        items={editorTabs}
+        onChange={st}
+        compact
+      />
       {tab === "Details" && (
         <>
           <Field
@@ -420,8 +456,7 @@ export function AgentEditor({ id, open, notify }: any) {
       )}
       {tab === "Call Settings" && (
         <>
-          <Card>
-            <T style={s.h2}>Speaking</T>
+          <Disclosure title="Speaking" initiallyOpen>
             {input("Speaking speed", " (0.5× – 2×)")}
             <T style={s.label}>Delivery</T>
             <Choices
@@ -442,17 +477,15 @@ export function AgentEditor({ id, open, notify }: any) {
               onChange={(v: string) => setting("Personality", v)}
             />
             {toggle("Filler phrases", "Say something while the agent thinks.")}
-          </Card>
-          <Card>
-            <T style={s.h2}>Listening</T>
+          </Disclosure>
+          <Disclosure title="Listening">
             {input("Wait before replying", " (seconds)")}
             {toggle("Let callers interrupt")}
             {input("Silence before it checks in", " (seconds)")}
             {input("How many times it checks in")}
             {input("What it says into the silence")}
-          </Card>
-          <Card>
-            <T style={s.h2}>Handing over to a person</T>
+          </Disclosure>
+          <Disclosure title="Handing over to a person">
             {toggle("Transfer to a person")}
             {a.settings["Transfer to a person"] && (
               <Field
@@ -461,18 +494,15 @@ export function AgentEditor({ id, open, notify }: any) {
                 onChangeText={(v: string) => setting("Transfer number", v)}
               />
             )}
-          </Card>
-          <Card>
-            <T style={s.h2}>Ending the call</T>
+          </Disclosure>
+          <Disclosure title="Ending the call">
             {input("Maximum length", " (minutes)")}
             {input("Phrases that end the call")}
-          </Card>
-          <Card>
-            <T style={s.h2}>Background sound</T>
+          </Disclosure>
+          <Disclosure title="Background sound">
             {toggle("Background sound")}
-          </Card>
-          <Card>
-            <T style={s.h2}>Post-call analytics</T>
+          </Disclosure>
+          <Disclosure title="Post-call analytics">
             <T style={s.sub}>Report on these calls</T>
             {["Completed", "Voicemail", "No Answer", "Busy", "Failed"].map(
               (x) => toggle(x),
@@ -486,7 +516,7 @@ export function AgentEditor({ id, open, notify }: any) {
             <T style={{ fontSize: 11, color: C.muted }}>
               Saved locally. No requests are sent.
             </T>
-          </Card>
+          </Disclosure>
         </>
       )}
       {tab === "Integrations" && (
@@ -635,7 +665,8 @@ export function AgentEditor({ id, open, notify }: any) {
                 value={query}
                 onChangeText={sq}
               />
-              <Tabs
+              <Select
+                label="Language"
                 items={[
                   "All languages",
                   "English",
@@ -646,11 +677,14 @@ export function AgentEditor({ id, open, notify }: any) {
                 ]}
                 value={lang}
                 onChange={sl}
+                compact
               />
-              <Tabs
+              <Select
+                label="Gender"
                 items={["All genders", "Female", "Male", "Neutral"]}
                 value={gender}
                 onChange={sg}
+                compact
               />
               {(voiceTab === "AI voices"
                 ? voices

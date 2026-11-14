@@ -1,3 +1,5 @@
+import { Select } from "./components/Select";
+import { RikChat } from "./components/RikChat";
 import { parseCSV } from "./csv";
 import { Planning } from "./Planning";
 import React, { useState } from "react";
@@ -48,7 +50,9 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
   const [query, sq] = useState("");
   const [filter, sf] = useState("All");
   const [sheet, ss] = useState("");
-  const [form, sv] = useState<Record<string, any>>({});
+  const [form, sv] = useState<Record<string, any>>(
+    page === "Clone Voice" ? { Language: "English", Gender: "Male" } : {},
+  );
   const [selected, sel] = useState<RecordItem | null>(null);
   const [step, sstep] = useState(1);
   const [showFilters, ssf] = useState(false);
@@ -67,17 +71,30 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
       onChangeText={(x: string) => v(k, x)}
     />
   );
-  const choose = (k: string, items: string[], multi = false) => (
-    <View style={{ gap: 10 }} key={k}>
-      <T style={s.label}>{k}</T>
-      <Choices
+  const choose = (k: string, items: string[], multi = false) =>
+    !multi &&
+    (items.length > 4 ||
+      ["Agent", "Language", "Stage", "Source", "Country", "Call from"].includes(
+        k,
+      )) ? (
+      <Select
+        key={k}
+        label={k}
         items={items}
-        multiple={multi}
-        value={form[k] || (multi ? [] : items[0])}
-        onChange={(x: any) => v(k, x)}
+        value={form[k] || items[0] || "Choose"}
+        onChange={(x: string) => v(k, x)}
       />
-    </View>
-  );
+    ) : (
+      <View style={{ gap: 10 }} key={k}>
+        <T style={s.label}>{k}</T>
+        <Choices
+          items={items}
+          multiple={multi}
+          value={form[k] || (multi ? [] : items[0])}
+          onChange={(x: any) => v(k, x)}
+        />
+      </View>
+    );
   const start = (name: string, defaults = {}) => {
     sv(defaults);
     sel(null);
@@ -272,10 +289,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
               value={lang}
               onChange={sl}
             />
-            <Tabs
+            <Select
+              label="Gender"
               items={["All genders", "Female", "Male", "Neutral"]}
               value={gender}
               onChange={sg}
+              compact
             />
             <Toggle
               label="Favourites only"
@@ -383,10 +402,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             ],
           ]}
         />
-        <Tabs
+        <Select
+          label="Agent"
           items={["All", ...data.agents.map((a) => a.name)]}
           value={filter}
           onChange={sf}
+          compact
         />
         <Field placeholder="Search files…" value={query} onChangeText={sq} />
         {data.files
@@ -701,10 +722,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           value={query}
           onChangeText={sq}
         />
-        <Tabs
+        <Select
+          label="Status"
           items={["All", "Draft", "Scheduled", "Paused", "Completed"]}
           value={filter}
           onChange={sf}
+          compact
         />
         {list(
           data.campaigns.filter((c) => filter === "All" || c.status === filter),
@@ -781,7 +804,8 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
         />
         {showFilters && (
           <Card>
-            <Tabs
+            <Select
+              label="Status"
               items={[
                 "All",
                 "New",
@@ -793,6 +817,7 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
               ]}
               value={filter}
               onChange={sf}
+              compact
             />
             <Button
               outline
@@ -925,23 +950,33 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           value={query}
           onChangeText={sq}
         />
-        <Choices
-          items={["All agents", ...data.agents.map((a) => a.name)]}
-          value={filter === "All" ? "All agents" : filter}
-          onChange={sf}
-        />
-        <Tabs
-          items={[
-            "All statuses",
-            "Completed",
-            "Voicemail",
-            "No Answer",
-            "Busy",
-            "Failed",
-          ]}
-          value={tab}
-          onChange={st}
-        />
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Select
+              label="Agent"
+              items={["All agents", ...data.agents.map((a) => a.name)]}
+              value={filter === "All" ? "All agents" : filter}
+              onChange={sf}
+              compact
+            />
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Select
+              label="Status"
+              items={[
+                "All statuses",
+                "Completed",
+                "Voicemail",
+                "No Answer",
+                "Busy",
+                "Failed",
+              ]}
+              value={tab}
+              onChange={st}
+              compact
+            />
+          </View>
+        </View>
         <View style={s.between}>
           <Button
             outline
@@ -990,10 +1025,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           title="Analytics"
           sub="Everything across your agents, over your selected period."
         />
-        <Choices
+        <Select
+          label="Agent"
           items={["All assistants", ...data.agents.map((a) => a.name)]}
           value={filter === "All" ? "All assistants" : filter}
           onChange={sf}
+          compact
         />
         <Tabs
           items={["7 days", "14 days", "30 days", "90 days", "Custom"]}
@@ -1033,7 +1070,9 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           icon="plus"
           onPress={() => start("Add credits", { Credits: "100" })}
         />
-        <Tabs
+        <Select
+          label="Billing section"
+          compact
           items={[
             "Overview",
             "Plans",
@@ -1198,10 +1237,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           title="Settings"
           sub="Your personal account — how you appear across your workspace."
         />
-        <Tabs
+        <Select
+          label="Settings section"
           items={["Profile", "Security", "AI assistant", "Help & support"]}
           value={tab}
           onChange={st}
+          compact
         />
         {tab === "Profile" ? (
           <Card>
@@ -1282,6 +1323,17 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
         ) : tab === "AI assistant" ? (
           <Card>
             <T style={s.h2}>Appearance</T>
+            <Toggle
+              label="Haptic feedback"
+              sub="Light feedback for taps and selections"
+              value={data.preferences.haptics}
+              onChange={(x: boolean) =>
+                set((d) => ({
+                  ...d,
+                  preferences: { ...d.preferences, haptics: x },
+                }))
+              }
+            />
             <T style={s.label}>Assistant size</T>
             <Choices
               items={["Small", "Medium", "Large"]}
@@ -1391,49 +1443,7 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
         )}
       </>
     );
-  if (page === "Ask Rik")
-    content = (
-      <>
-        <Heading title="Ask Rik" sub="Your HeyRik support companion" />
-        <Image
-          source={art.orb}
-          style={{
-            width: 110,
-            height: 110,
-            borderRadius: 55,
-            alignSelf: "center",
-          }}
-        />
-        <Card>
-          <T>Hi! I’m Rik. What would you like help with?</T>
-          <T style={s.sub}>Local help preview — no AI service connected.</T>
-          {form.Answer && <T style={{ lineHeight: 23 }}>{form.Answer}</T>}
-        </Card>
-        {[
-          "Build an agent",
-          "Connect a number",
-          "Start a campaign",
-          "Understand credits",
-        ].map((x, i) => (
-          <Button
-            key={x}
-            outline
-            label={x}
-            onPress={() =>
-              v(
-                "Answer",
-                [
-                  "Go to AI Agents, choose a template or start from scratch, then edit the voice, instructions, and settings.",
-                  "Open Phone Numbers. Choose a sample number or bring your own SIP provider.",
-                  "Open Campaigns, pick an agent and calling number, add contacts, then set your calling schedule.",
-                  "One credit is approximately one minute of talk time. Your demo starts with 30 credits.",
-                ][i],
-              )
-            }
-          />
-        ))}
-      </>
-    );
+  if (page === "Ask Rik") content = <RikChat open={open} />;
   return (
     <>
       {content}
@@ -1441,11 +1451,6 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
         <Sheet
           title={sheet}
           onClose={() => ss("")}
-          sub={
-            sheet === "Details"
-              ? undefined
-              : "Frontend demo · changes stay on this device."
-          }
         >
           {sheet === "Details" && selected && (
             <>

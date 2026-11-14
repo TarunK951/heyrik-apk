@@ -17,3 +17,11 @@
 - Additional website inspection verified password fields, Rik sizes, support priority/references, API-key creation layout, and both planning calculators. Calculators reproduce the observed sample results: current INR 18,750, projected INR 36,250, saving INR -17,500; missed-call revenue INR 235,872.
 
 Full reference comparison remains bounded by empty live account data. See SCREEN-AUDIT.md for unverified/inferred surfaces. Browser QA used local sample data, which is not bundled as user data in source.
+
+## Mobile refinement pass
+
+- Lint and TypeScript pass on the final source; CSV tests pass 4/4; Expo Doctor passes 20/20.
+- Reviewed iOS, Android, and web production bundles all exported successfully. These are bundles, not APK/device test results.
+- Expo LAN server runs on port 8083; the static snapshot on port 8082 was refreshed.
+- Browser checks include all five primary tabs, all 12 More destinations at 320 CSS pixels, all six editor sections, all billing/settings sections, dropdowns, chat text/reply/navigation, lead save, template creation, and back-to-top/tab reselection. Also inspected at 358 and 393 CSS pixels.
+- The loading animation respects Reduce Motion; haptics are configured for devices and disabled on web. Physical iOS/Android behavior remains for Expo Go review. No APK was built in this pass, as requested.

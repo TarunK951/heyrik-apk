@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Generated local visual QA and LAN connection artifact
+/docs/screenshots/compact-*
+/docs/screenshots/review-*
+/docs/screenshots/editor-*
+/docs/screenshots/expo-go-qr.png

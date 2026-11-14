@@ -1,3 +1,5 @@
+import { tapFeedback } from "./feedback";
+import AdaptiveSwitch from "./components/AdaptiveSwitch";
 import React from "react";
 import {
   Text,
@@ -6,20 +8,20 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
-  Switch,
   Modal,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 export const C = {
   ink: "#0b0b0b",
-  muted: "#85858a",
+  muted: "#707078",
   line: "#e5e5e7",
   soft: "#f5f5f5",
   green: "#078744",
 };
 export const art = {
+  mark: require("../assets/brand/app-icon.png"),
   login: require("../assets/brand/login-art.jpg"),
   lilac: require("../assets/brand/mesh-lilac.jpg"),
   lagoon: require("../assets/brand/mesh-lagoon.jpg"),
@@ -52,11 +54,15 @@ export function Button({
       accessibilityRole="button"
       accessibilityLabel={label}
       disabled={disabled}
-      onPress={onPress}
+      accessibilityState={{ disabled }}
+      onPress={(event) => {
+        tapFeedback();
+        onPress?.(event);
+      }}
       style={({ pressed }) => [
         s.button,
         outline && s.outline,
-        small && { paddingVertical: 10, minHeight: 42 },
+        small && { paddingVertical: 10, minHeight: 44 },
         disabled && { opacity: 0.35 },
         pressed && { opacity: 0.65 },
         style,
@@ -82,7 +88,10 @@ export function IB({ name, onPress, label }: any) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label || name}
-      onPress={onPress}
+      onPress={(event) => {
+        tapFeedback();
+        onPress?.(event);
+      }}
       style={s.ib}
     >
       <Icon name={name} />
@@ -97,10 +106,11 @@ export function Field({
   secureTextEntry,
   multiline,
   keyboardType,
+  inputStyle,
   style,
 }: any) {
   return (
-    <View style={{ gap: 8, ...style }}>
+    <View style={[{ gap: 8, minWidth: 0 }, style]}>
       {label && <T style={s.label}>{label}</T>}
       <TextInput
         accessibilityLabel={label || placeholder}
@@ -110,11 +120,21 @@ export function Field({
         onChangeText={onChangeText}
         secureTextEntry={secureTextEntry}
         multiline={multiline}
+        autoCorrect={keyboardType !== "email-address" && !secureTextEntry}
+        returnKeyType={multiline ? "default" : "done"}
         keyboardType={keyboardType}
-        autoCapitalize={keyboardType === "email-address" ? "none" : "sentences"}
+        autoCapitalize={
+          keyboardType === "email-address" ||
+          secureTextEntry ||
+          placeholder?.startsWith("Search")
+            ? "none"
+            : "sentences"
+        }
+        clearButtonMode="while-editing"
         style={[
           s.input,
           multiline && { minHeight: 110, textAlignVertical: "top" },
+          inputStyle,
         ]}
       />
     </View>
@@ -124,7 +144,10 @@ export function Card({ children, style, onPress }: any) {
   return onPress ? (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={(event) => {
+        tapFeedback();
+        onPress?.(event);
+      }}
       style={[s.card, style]}
     >
       {children}
@@ -174,6 +197,7 @@ export function Tabs({ items, value, onChange }: any) {
   return (
     <ScrollView
       horizontal
+      style={{ flexGrow: 0, minHeight: 48 }}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ gap: 7, paddingVertical: 3 }}
     >
@@ -182,7 +206,10 @@ export function Tabs({ items, value, onChange }: any) {
           key={x}
           accessibilityRole="tab"
           accessibilityState={{ selected: value === x }}
-          onPress={() => onChange(x)}
+          onPress={() => {
+            tapFeedback();
+            onChange(x);
+          }}
           style={[
             s.tab,
             value === x && { backgroundColor: C.ink, borderColor: C.ink },
@@ -247,7 +274,7 @@ export function Toggle({ label, sub, value, onChange }: any) {
             fontFamily: "GeistSemi",
             fontSize: 14,
             flexShrink: 1,
-            textAlign: "center",
+            textAlign: "left",
           }}
         >
           {label}
@@ -256,11 +283,13 @@ export function Toggle({ label, sub, value, onChange }: any) {
           <T style={{ color: C.muted, fontSize: 12, lineHeight: 18 }}>{sub}</T>
         )}
       </View>
-      <Switch
-        accessibilityLabel={label}
+      <AdaptiveSwitch
+        label={label}
         value={!!value}
-        onValueChange={onChange}
-        trackColor={{ false: "#dedee1", true: "#111" }}
+        onChange={(value: boolean) => {
+          tapFeedback();
+          onChange(value);
+        }}
       />
     </View>
   );
@@ -285,11 +314,18 @@ export function Stats({ items }: any) {
       {items.map(([label, value, sub]: string[]) => (
         <Card
           key={label}
-          style={{ flexGrow: 1, flexBasis: "43%", padding: 16, gap: 8 }}
+          style={{
+            flexGrow: 1,
+            flexBasis: items.length === 3 ? "28%" : "43%",
+            padding: items.length === 3 ? 12 : 16,
+            gap: 8,
+          }}
         >
           <T style={{ fontSize: 12, color: C.muted }}>{label}</T>
           <T style={{ fontSize: 25, fontFamily: "GeistSemi" }}>{value}</T>
-          {sub && <T style={{ fontSize: 11, color: C.muted }}>{sub}</T>}
+          {sub && items.length !== 3 && (
+            <T style={{ fontSize: 11, color: C.muted }}>{sub}</T>
+          )}
         </Card>
       ))}
     </View>
@@ -306,7 +342,10 @@ export function Row({
   return (
     <Container
       accessibilityRole={onPress ? "button" : undefined}
-      onPress={onPress}
+      onPress={(event) => {
+        tapFeedback();
+        onPress?.(event);
+      }}
       style={s.row}
     >
       <View style={{ flex: 1, gap: 5 }}>
@@ -334,6 +373,8 @@ export function Sheet({ title, sub, children, onClose }: any) {
           </View>
           {sub && <T style={s.sub}>{sub}</T>}
           <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{
               gap: 18,
@@ -357,7 +398,7 @@ export const s = StyleSheet.create({
     letterSpacing: -1.1,
   },
   h2: { fontFamily: "GeistSemi", fontSize: 18, letterSpacing: -0.4 },
-  sub: { fontSize: 14, color: "#85858a", lineHeight: 21 },
+  sub: { fontSize: 14, color: "#707078", lineHeight: 21 },
   eyebrow: {
     fontSize: 11,
     color: "#8c8c91",
@@ -378,8 +419,8 @@ export const s = StyleSheet.create({
   },
   outline: { backgroundColor: "white", borderColor: C.line, borderWidth: 1 },
   ib: {
-    width: 42,
-    height: 42,
+    width: 44,
+    height: 44,
     borderRadius: 21,
     borderWidth: 1,
     borderColor: C.line,
@@ -403,6 +444,8 @@ export const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.line,
     borderRadius: 22,
+    minWidth: 0,
+    maxWidth: "100%",
     padding: 20,
     gap: 14,
     backgroundColor: "white",

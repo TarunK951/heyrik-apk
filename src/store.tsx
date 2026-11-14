@@ -1,9 +1,18 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+} from "react";
+import { AppState, Platform } from "react-native";
+import { setHapticsEnabled } from "./feedback";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Agent, makeAgent } from "./catalog";
 export type RecordItem = { id: string; name: string; [key: string]: any };
 type State = {
-  preferences: { rikSize: string };
+  preferences: { rikSize: string; haptics: boolean };
   profile: { name: string; email: string; phone: string };
   onboarded: boolean;
   agents: Agent[];
@@ -24,7 +33,7 @@ type State = {
   favorites: string[];
 };
 const initial: State = {
-  preferences: { rikSize: "Medium" },
+  preferences: { rikSize: "Medium", haptics: true },
   profile: { name: "Alex", email: "alex@example.com", phone: "" },
   onboarded: false,
   agents: [
@@ -66,6 +75,7 @@ const Context = createContext<{
   signin: () => {},
 });
 export function Store({ children }: { children: React.ReactNode }) {
+  const writeQueue = useRef(Promise.resolve());
   const [data, setData] = useState(initial);
   const [signed, signin] = useState(false);
   const [ready, setReady] = useState(false);
@@ -74,22 +84,52 @@ export function Store({ children }: { children: React.ReactNode }) {
       .then((v) => {
         if (v) {
           try {
-            setData({ ...initial, ...JSON.parse(v) });
+            const saved = JSON.parse(v);
+            setData({
+              ...initial,
+              ...saved,
+              preferences: { ...initial.preferences, ...saved.preferences },
+              profile: { ...initial.profile, ...saved.profile },
+            });
           } catch {}
         }
       })
+      .catch(() => {})
       .finally(() => setReady(true));
   }, []);
   useEffect(() => {
-    if (ready)
-      AsyncStorage.setItem("heyrik-demo-v1", JSON.stringify(data)).catch(
-        () => {},
-      );
+    if (!ready) return;
+    const snapshot = JSON.stringify(data);
+    const persist = () => {
+      writeQueue.current = writeQueue.current
+        .catch(() => {})
+        .then(() => AsyncStorage.setItem("heyrik-demo-v1", snapshot))
+        .catch(() => {});
+    };
+    if (Platform.OS === "web") {
+      persist();
+      return;
+    }
+    const timer = setTimeout(persist, 250);
+    const listener = AppState.addEventListener("change", (state) => {
+      if (state !== "active") {
+        clearTimeout(timer);
+        persist();
+      }
+    });
+    return () => {
+      clearTimeout(timer);
+      listener.remove();
+    };
   }, [data, ready]);
-  return (
-    <Context.Provider value={{ data, set: setData, ready, signed, signin }}>
-      {children}
-    </Context.Provider>
+  useEffect(
+    () => setHapticsEnabled(data.preferences.haptics),
+    [data.preferences.haptics],
   );
+  const value = useMemo(
+    () => ({ data, set: setData, ready, signed, signin }),
+    [data, ready, signed],
+  );
+  return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export const useStore = () => useContext(Context);

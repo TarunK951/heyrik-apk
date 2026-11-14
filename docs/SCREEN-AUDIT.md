@@ -4,7 +4,7 @@ Inspected through the user's signed-in local browser on 14 November 2026. The cu
 
 ## Design
 
-Bundled original HeyRik logo, login art, mesh backgrounds, and orbs. Original Geist converted from web font to static native 400/600 TTF. White backgrounds, near-black primary buttons, fine gray borders, muted labels, rounded cards. Native React Native components; no WebView. Five bottom tabs (Agents, Campaigns, CRM, Calls, More), grouped overflow modules, six agent editor tabs, stacked cards instead of desktop tables, and scrollable sheets for dialogs.
+Bundled original HeyRik logo, login art, mesh backgrounds, and orbs. Original Geist converted from web font to static native 400/600 TTF. White backgrounds, near-black primary buttons, fine gray borders, muted labels, rounded cards. Native React Native components; no WebView. Five bottom tabs (Agents, Calls, CRM, Outreach, More), grouped overflow modules, a six-section agent picker, stacked cards instead of desktop tables, and scrollable sheets for dialogs.
 
 ## Coverage
 
@@ -41,3 +41,5 @@ This is a frontend demo, not a claim of exhaustive website parity. Every sidebar
 No real authentication, AI generation, voice models, microphone recording/cloning, PDF rendering/indexing, crawling, KYC, payments, telephony, OAuth, webhook/API calls, email, or support submission is connected. Voice previews use device text-to-speech. The library has 18 samples, not the full 300. CSV import accepts pasted text; XLSX attachments can be selected but are not parsed. Columns are a preview preference, not a populated table. Data persists only on this device. Never enter real identity numbers or secrets.
 
 Known live-site changes during inspection: skipped onboarding; Start from scratch created one draft named New Agent. No call, purchase, upload, integration connection, or paid operation was performed.
+
+See [mobile refinement](MOBILE-REFINEMENT.md) for the latest native navigation, compact forms, responsive and accessibility changes.
