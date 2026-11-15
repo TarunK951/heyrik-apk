@@ -1,5 +1,5 @@
 import { BrandLoader } from "./src/components/BrandLoader";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   ScrollView,
@@ -36,6 +36,10 @@ import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { tabHref, registerTabScroll } from "./src/navigation";
 import { modules } from "./src/catalog";
 import { Workspace } from "./src/Workspace";
+// Isolate screen content from transient header, toast and scroll updates.
+const MemoAgentHome = React.memo(AgentHome);
+const MemoAgentEditor = React.memo(AgentEditor);
+const MemoWorkspace = React.memo(Workspace);
 export function AppContent({
   fixedPage,
   inTab = false,
@@ -62,12 +66,12 @@ export function AppContent({
     "Call Logs",
     "More",
   ].includes(current.page);
-  const notify = (message: string) => {
+  const notify = useCallback((message: string) => {
     st(message);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => st(""), 3500);
-  };
-  const open = (page: string, param?: string) => {
+  }, []);
+  const open = useCallback((page: string, param?: string) => {
     const main = tabHref(page);
     if (main) {
       ss("");
@@ -80,12 +84,12 @@ export function AppContent({
       pathname: "/[page]",
       params: { page, ...(param ? { agent: param } : {}) },
     });
-  };
+  }, [router]);
   const back = () => (router.canGoBack() ? router.back() : router.replace("/"));
-  const signOut = () => {
+  const signOut = useCallback(() => {
     signin(false);
     router.replace("/");
-  };
+  }, [router, signin]);
   useEffect(() => {
     scroll.current?.scrollTo({ y: 0, animated: false });
   }, [current.page, current.param]);
@@ -242,9 +246,9 @@ export function AppContent({
               }}
             >
               {current.page === "AI Agents" ? (
-                <AgentHome open={open} />
+                <MemoAgentHome open={open} />
               ) : current.page === "Agent" ? (
-                <AgentEditor id={current.param} open={open} notify={notify} />
+                <MemoAgentEditor id={current.param} open={open} notify={notify} />
               ) : current.page === "More" ? (
                 <>
                   <Heading
@@ -303,7 +307,7 @@ export function AppContent({
                   ))}
                 </>
               ) : (
-                <Workspace
+                <MemoWorkspace
                   key={current.page + current.param}
                   page={current.page}
                   param={current.param}

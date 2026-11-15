@@ -25,3 +25,11 @@ Full reference comparison remains bounded by empty live account data. See SCREEN
 - Expo LAN server runs on port 8083; the static snapshot on port 8082 was refreshed.
 - Browser checks include all five primary tabs, all 12 More destinations at 320 CSS pixels, all six editor sections, all billing/settings sections, dropdowns, chat text/reply/navigation, lead save, template creation, and back-to-top/tab reselection. Also inspected at 358 and 393 CSS pixels.
 - The loading animation respects Reduce Motion; haptics are configured for devices and disabled on web. Physical iOS/Android behavior remains for Expo Go review. No APK was built in this pass, as requested.
+
+## Performance refinement — 2026-11-15
+
+- Removed the artificial 800 ms startup delay; the animated loader remains during font/storage loading.
+- Memoized agent/workspace screen boundaries and stabilized navigation callbacks so header search, toast and back-to-top state do not needlessly render the screen subtree. Store updates continue to render normally.
+- Closed dropdowns no longer mount modal/list content or filter options. Search normalizes the query once per update.
+- Native persistence serializes only after the existing save delay, coalescing rapid edits. Background/timer notifications write each snapshot once; web keeps immediate persistence.
+- Lint, TypeScript, four CSV tests, and production web export passed. No device benchmark or measured FPS improvement is claimed; native device regression testing remains outstanding.

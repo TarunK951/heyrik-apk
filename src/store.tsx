@@ -99,8 +99,12 @@ export function Store({ children }: { children: React.ReactNode }) {
   }, []);
   useEffect(() => {
     if (!ready) return;
-    const snapshot = JSON.stringify(data);
+    let persisted = false;
     const persist = () => {
+      if (persisted) return;
+      persisted = true;
+      // Serialize only the final coalesced update, not every keystroke.
+      const snapshot = JSON.stringify(data);
       writeQueue.current = writeQueue.current
         .catch(() => {})
         .then(() => AsyncStorage.setItem("heyrik-demo-v1", snapshot))

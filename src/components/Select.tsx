@@ -30,8 +30,12 @@ export function Select({
     [query, sq] = useState("");
   const { height } = useWindowDimensions();
   const filtered = useMemo(
-    () => items.filter((x) => x.toLowerCase().includes(query.toLowerCase())),
-    [items, query],
+    () => {
+      if (!open) return [];
+      const search = query.trim().toLowerCase();
+      return search ? items.filter((x) => x.toLowerCase().includes(search)) : items;
+    },
+    [items, query, open],
   );
   return (
     <View style={{ flexShrink: 1, minWidth: 0, gap: 7 }}>
@@ -70,7 +74,7 @@ export function Select({
         </Text>
         <Feather name="chevron-down" size={16} color="#777" />
       </Pressable>
-      <Modal
+      {open && <Modal
         visible={open}
         transparent
         animationType="fade"
@@ -204,7 +208,7 @@ export function Select({
             />
           </View>
         </KeyboardAvoidingView>
-      </Modal>
+      </Modal>}
     </View>
   );
 }
