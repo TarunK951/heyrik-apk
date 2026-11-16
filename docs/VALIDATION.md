@@ -41,3 +41,5 @@ See PAGE-AUDIT-2026-11-16.md for the page-by-page coverage, fixes, measurements 
 ## Search/chat row refinement
 
 Moved workspace search into a stretched entry below the compact header, with Ask Rik beside it on all five primary tabs. Checked the layout at 320 px and approximately 393 px, search-sheet opening and chat navigation. Lint, TypeScript and production web export passed.
+
+Assistant-list arrangement: centered Browse templates, separated the list with a divider, and placed assistant search beside its heading. Checked at 320 px and approximately 393 px, including filtering and opening templates. Lint, TypeScript and web export passed.

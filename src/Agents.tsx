@@ -109,7 +109,7 @@ export function AgentHome({ open }: any) {
           </View>
         </Card>
       </View>
-      <View style={s.between}>
+      <View style={{ alignItems: "center" }}>
         <Button
           small
           outline
@@ -148,12 +148,27 @@ export function AgentHome({ open }: any) {
           ))}
         </Sheet>
       )}
-      <Section title={"Your assistants  " + data.agents.length}>
-        <Field
-          placeholder="Search assistants…"
-          value={query}
-          onChangeText={sq}
-        />
+      <View
+        style={{
+          gap: 14,
+          borderTopWidth: 1,
+          borderTopColor: C.line,
+          paddingTop: 24,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <T style={{ fontFamily: "GeistSemi", fontSize: 15, flexShrink: 0 }}>
+            Your assistants {data.agents.length}
+          </T>
+          <Field
+            style={{ flex: 1, minWidth: 0 }}
+            inputStyle={{ minHeight: 44, paddingHorizontal: 12, fontSize: 13 }}
+            placeholder="Search…"
+            accessibilityLabel="Search assistants"
+            value={query}
+            onChangeText={sq}
+          />
+        </View>
         {data.agents
           .filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
           .map((a, i) => (
@@ -208,7 +223,7 @@ export function AgentHome({ open }: any) {
             sub="Try another name or build a new agent."
           />
         )}
-      </Section>
+      </View>
       {actions && (
         <Sheet title={actions.name} onClose={() => sa(null)}>
           <Button

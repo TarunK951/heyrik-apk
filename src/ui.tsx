@@ -100,6 +100,7 @@ export function IB({ name, onPress, label }: any) {
   );
 }
 export function Field({
+  accessibilityLabel,
   label,
   value,
   onChangeText,
@@ -114,7 +115,7 @@ export function Field({
     <View style={[{ gap: 8, minWidth: 0 }, style]}>
       {label && <T style={s.label}>{label}</T>}
       <TextInput
-        accessibilityLabel={label || placeholder}
+        accessibilityLabel={accessibilityLabel || label || placeholder}
         placeholder={placeholder}
         placeholderTextColor="#97979c"
         value={value}
