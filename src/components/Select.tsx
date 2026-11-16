@@ -60,10 +60,10 @@ export function Select({
           borderRadius: 14,
           borderWidth: 1,
           borderColor: "#e5e5e7",
-          paddingHorizontal: 13,
+          paddingHorizontal: compact ? 8 : 13,
           flexDirection: "row",
           alignItems: "center",
-          gap: 10,
+          gap: compact ? 5 : 10,
           backgroundColor: "#fff",
         }}
       >
@@ -73,7 +73,7 @@ export function Select({
         >
           {value || label}
         </Text>
-        <Feather name="chevron-down" size={16} color="#777" />
+        <Feather name="chevron-down" size={compact ? 14 : 16} color="#777" />
       </Pressable>
       {open && (
         <Modal

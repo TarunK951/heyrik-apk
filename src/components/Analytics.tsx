@@ -15,6 +15,7 @@ import {
   Stats,
 } from "../ui";
 import { Select } from "./Select";
+import { SearchToolbar } from "./SearchToolbar";
 
 const templates = [
   "Calls by direction",
@@ -245,17 +246,25 @@ export function Analytics({
         <Sheet title={sheet} onClose={() => setSheet("")}>
           {sheet === "Add a chart" && (
             <>
-              <Field
-                placeholder="Search charts…"
+              <SearchToolbar
+                label="Search charts"
                 value={search}
-                onChangeText={setSearch}
-              />
-              <Select
-                label="Chart category"
-                items={["Recommended", "Calls", "Outcomes", "Usage", "Quality"]}
-                value={category}
-                onChange={setCategory}
-              />
+                onChange={setSearch}
+              >
+                <Select
+                  label="Chart category"
+                  items={[
+                    "Recommended",
+                    "Calls",
+                    "Outcomes",
+                    "Usage",
+                    "Quality",
+                  ]}
+                  value={category}
+                  onChange={setCategory}
+                  compact
+                />
+              </SearchToolbar>
               {templates
                 .filter(
                   (name, index) =>

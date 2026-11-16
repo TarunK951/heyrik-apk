@@ -43,3 +43,7 @@ See PAGE-AUDIT-2026-11-16.md for the page-by-page coverage, fixes, measurements 
 Moved workspace search into a stretched entry below the compact header, with Ask Rik beside it on all five primary tabs. Checked the layout at 320 px and approximately 393 px, search-sheet opening and chat navigation. Lint, TypeScript and production web export passed.
 
 Assistant-list arrangement: centered Browse templates, separated the list with a divider, and placed assistant search beside its heading. Checked at 320 px and approximately 393 px, including filtering and opening templates. Lint, TypeScript and web export passed.
+
+## Compact search and filter rows
+
+Removed the assistant-list heading/count and replaced list searches with accessible icon controls that reveal a focused input on demand. Closing search clears its query. Shared toolbars group dropdowns and search/actions on Calls, CRM, Campaigns, Knowledge Base, Connections, Chatbot, voice library, tickets, agent variables/sources, voice selection and chart selection. Kept centered templates and consistent section dividers. Checked search expansion/clear, actual assistant/voice filtering, dropdown selection and CRM view switching; inspected at 320, approximately 393 and 430 px with no document overflow. Lint, TypeScript, web export and native bundle exports passed; physical-device keyboard behavior remains unverified. See screenshots/search-filter-layouts.jpg.

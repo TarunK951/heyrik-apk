@@ -101,6 +101,7 @@ export function IB({ name, onPress, label }: any) {
 }
 export function Field({
   accessibilityLabel,
+  autoFocus,
   label,
   value,
   onChangeText,
@@ -115,6 +116,7 @@ export function Field({
     <View style={[{ gap: 8, minWidth: 0 }, style]}>
       {label && <T style={s.label}>{label}</T>}
       <TextInput
+        autoFocus={autoFocus}
         accessibilityLabel={accessibilityLabel || label || placeholder}
         placeholder={placeholder}
         placeholderTextColor="#97979c"

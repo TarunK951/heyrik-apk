@@ -1,5 +1,6 @@
 import { Disclosure } from "./components/Disclosure";
 import { Select } from "./components/Select";
+import { SearchToolbar } from "./components/SearchToolbar";
 import { OrbPicker, orbSource } from "./components/OrbPicker";
 import React, { useState } from "react";
 import { View, Image, Pressable } from "react-native";
@@ -148,27 +149,8 @@ export function AgentHome({ open }: any) {
           ))}
         </Sheet>
       )}
-      <View
-        style={{
-          gap: 14,
-          borderTopWidth: 1,
-          borderTopColor: C.line,
-          paddingTop: 24,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <T style={{ fontFamily: "GeistSemi", fontSize: 15, flexShrink: 0 }}>
-            Your assistants {data.agents.length}
-          </T>
-          <Field
-            style={{ flex: 1, minWidth: 0 }}
-            inputStyle={{ minHeight: 44, paddingHorizontal: 12, fontSize: 13 }}
-            placeholder="Search…"
-            accessibilityLabel="Search assistants"
-            value={query}
-            onChangeText={sq}
-          />
-        </View>
+      <View style={{ gap: 14 }}>
+        <SearchToolbar label="Search assistants" value={query} onChange={sq} />
         {data.agents
           .filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
           .map((a, i) => (
@@ -496,12 +478,15 @@ export function AgentEditor({ id, open, notify }: any) {
       )}
       {tab === "Variables" && (
         <>
-          <Tabs items={["Input", "Output"]} value={varType} onChange={svt} />
-          <Field
-            placeholder="Search variables…"
-            value={query}
-            onChangeText={sq}
-          />
+          <SearchToolbar label="Search variables" value={query} onChange={sq}>
+            <Select
+              label="Variable type"
+              items={["Input", "Output"]}
+              value={varType}
+              onChange={svt}
+              compact
+            />
+          </SearchToolbar>
           <Heading
             title={varType + " variables"}
             sub={
@@ -661,11 +646,7 @@ export function AgentEditor({ id, open, notify }: any) {
             icon="book-open"
             onPress={() => open("Knowledge Base", id)}
           />
-          <Field
-            placeholder="Search sources…"
-            value={query}
-            onChangeText={sq}
-          />
+          <SearchToolbar label="Search sources" value={query} onChange={sq} />
           {data.files
             .filter(
               (f) =>
@@ -775,25 +756,22 @@ export function AgentEditor({ id, open, notify }: any) {
                 value={voiceTab}
                 onChange={svTab}
               />
-              <Field
-                placeholder="Search voices…"
-                value={query}
-                onChangeText={sq}
-              />
-              <Select
-                label="Language"
-                items={["All languages", ...languages]}
-                value={lang}
-                onChange={sl}
-                compact
-              />
-              <Select
-                label="Gender"
-                items={["All genders", "Female", "Male", "Neutral"]}
-                value={gender}
-                onChange={sg}
-                compact
-              />
+              <SearchToolbar label="Search voices" value={query} onChange={sq}>
+                <Select
+                  label="Language"
+                  items={["All languages", ...languages]}
+                  value={lang}
+                  onChange={sl}
+                  compact
+                />
+                <Select
+                  label="Gender"
+                  items={["All genders", "Female", "Male", "Neutral"]}
+                  value={gender}
+                  onChange={sg}
+                  compact
+                />
+              </SearchToolbar>
               {(voiceTab === "AI voices"
                 ? voices
                 : data.clones.map((c) => [c.name, c.language, c.gender])

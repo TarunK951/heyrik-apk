@@ -1,4 +1,5 @@
 import { Select } from "./components/Select";
+import { SearchToolbar } from "./components/SearchToolbar";
 import { Analytics } from "./components/Analytics";
 import { OrbPicker, orbSource } from "./components/OrbPicker";
 import { ProfilePhoto } from "./components/ProfilePhoto";
@@ -298,23 +299,22 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           </>
         ) : (
           <>
-            <Field
-              placeholder="Search voices…"
-              value={query}
-              onChangeText={sq}
-            />
-            <Tabs
-              items={["All languages", ...languages.slice(0, 6)]}
-              value={lang}
-              onChange={sl}
-            />
-            <Select
-              label="Gender"
-              items={["All genders", "Female", "Male", "Neutral"]}
-              value={gender}
-              onChange={sg}
-              compact
-            />
+            <SearchToolbar label="Search voices" value={query} onChange={sq}>
+              <Select
+                label="Language"
+                items={["All languages", ...languages]}
+                value={lang}
+                onChange={sl}
+                compact
+              />
+              <Select
+                label="Gender"
+                items={["All genders", "Female", "Male", "Neutral"]}
+                value={gender}
+                onChange={sg}
+                compact
+              />
+            </SearchToolbar>
             <Toggle
               label="Favourites only"
               value={favoritesOnly}
@@ -421,14 +421,15 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             ],
           ]}
         />
-        <Select
-          label="Agent"
-          items={["All", ...data.agents.map((a) => a.name)]}
-          value={filter}
-          onChange={sf}
-          compact
-        />
-        <Field placeholder="Search files…" value={query} onChangeText={sq} />
+        <SearchToolbar label="Search files" value={query} onChange={sq}>
+          <Select
+            label="Agent"
+            items={["All", ...data.agents.map((a) => a.name)]}
+            value={filter}
+            onChange={sf}
+            compact
+          />
+        </SearchToolbar>
         {data.files
           .filter(matches)
           .filter(
@@ -608,8 +609,15 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             })
           }
         />
-        <Tabs items={["Chatbots", "Conversations"]} value={tab} onChange={st} />
-        <Field placeholder="Search chatbots…" value={query} onChangeText={sq} />
+        <SearchToolbar label="Search chatbots" value={query} onChange={sq}>
+          <Select
+            label="Chatbot view"
+            items={["Chatbots", "Conversations"]}
+            value={tab}
+            onChange={st}
+            compact
+          />
+        </SearchToolbar>
         {tab === "Chatbots" ? (
           list(
             data.bots,
@@ -632,12 +640,15 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           title="Connections"
           sub="Bring your tools into the conversation."
         />
-        <Field
-          placeholder="Search integrations…"
-          value={query}
-          onChangeText={sq}
-        />
-        <Tabs items={["All", "Connected"]} value={filter} onChange={sf} />
+        <SearchToolbar label="Search integrations" value={query} onChange={sq}>
+          <Select
+            label="Connection status"
+            items={["All", "Connected"]}
+            value={filter}
+            onChange={sf}
+            compact
+          />
+        </SearchToolbar>
         {integrations
           .filter(
             (x) =>
@@ -736,25 +747,22 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             ["Calls in progress", "0"],
           ]}
         />
-        <Field
-          placeholder="Search campaigns…"
-          value={query}
-          onChangeText={sq}
-        />
-        <Select
-          label="Status"
-          items={["All", "Draft", "Scheduled", "Paused", "Completed"]}
-          value={filter}
-          onChange={sf}
-          compact
-        />
-        <Select
-          label="Agent"
-          items={["All agents", ...data.agents.map((a) => a.name)]}
-          value={campaignAgent}
-          onChange={setCampaignAgent}
-          compact
-        />
+        <SearchToolbar label="Search campaigns" value={query} onChange={sq}>
+          <Select
+            label="Status"
+            items={["All", "Draft", "Scheduled", "Paused", "Completed"]}
+            value={filter}
+            onChange={sf}
+            compact
+          />
+          <Select
+            label="Agent"
+            items={["All agents", ...data.agents.map((a) => a.name)]}
+            value={campaignAgent}
+            onChange={setCampaignAgent}
+            compact
+          />
+        </SearchToolbar>
         {list(
           data.campaigns.filter(
             (c) =>
@@ -819,19 +827,26 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             ],
           ]}
         />
-        <Field placeholder="Search leads…" value={query} onChangeText={sq} />
-        <Tabs
-          items={["Table", "Kanban", "Folders"]}
-          value={tab}
-          onChange={st}
-        />
-        <Button
-          outline
-          small
-          label={showFilters ? "Hide filters" : "Filters & data tools"}
-          icon="sliders"
-          onPress={() => ssf(!showFilters)}
-        />
+        <SearchToolbar
+          label="Search leads"
+          value={query}
+          onChange={sq}
+          actions={
+            <IB
+              name="sliders"
+              label={showFilters ? "Hide filters" : "Filters & data tools"}
+              onPress={() => ssf(!showFilters)}
+            />
+          }
+        >
+          <Select
+            label="Lead view"
+            items={["Table", "Kanban", "Folders"]}
+            value={tab}
+            onChange={st}
+            compact
+          />
+        </SearchToolbar>
         {showFilters && (
           <Card>
             <Select
@@ -975,12 +990,7 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           title="Call logs"
           sub="Review conversations, outcomes and recordings in one place."
         />
-        <Field
-          placeholder="Search call logs…"
-          value={query}
-          onChangeText={sq}
-        />
-        <View style={{ flexDirection: "row", gap: 10 }}>
+        <SearchToolbar label="Search call logs" value={query} onChange={sq}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Select
               label="Agent"
@@ -1006,7 +1016,7 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
               compact
             />
           </View>
-        </View>
+        </SearchToolbar>
         <View style={s.between}>
           <Button
             outline
@@ -1465,7 +1475,7 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             )
           }
         />
-        <Field placeholder="Search tickets…" value={query} onChangeText={sq} />
+        <SearchToolbar label="Search tickets" value={query} onChange={sq} />
         {list(
           data.tickets,
           "No tickets yet",
