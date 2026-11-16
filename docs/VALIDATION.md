@@ -37,3 +37,7 @@ Full reference comparison remains bounded by empty live account data. See SCREEN
 ## Website/mobile audit — 2026-11-16
 
 See PAGE-AUDIT-2026-11-16.md for the page-by-page coverage, fixes, measurements and verification limits. Final lint/typecheck pass, CSV tests pass 4/4, and all three platform bundles export. Browser review covers five tabs, twelve secondary modules, six editor sections, billing/settings sections, creation forms and local persistence. Native device behavior remains unverified. No APK was generated.
+
+## Search/chat row refinement
+
+Moved workspace search into a stretched entry below the compact header, with Ask Rik beside it on all five primary tabs. Checked the layout at 320 px and approximately 393 px, search-sheet opening and chat navigation. Lint, TypeScript and production web export passed.

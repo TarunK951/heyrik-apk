@@ -176,16 +176,6 @@ export function AppContent({
               )}
               {!nested && (
                 <>
-                  <IB
-                    name="message-circle"
-                    label="Ask Rik"
-                    onPress={() => open("Ask Rik")}
-                  />
-                  <IB
-                    name="search"
-                    label="Search workspace"
-                    onPress={() => ss("Search workspace")}
-                  />
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel="Open billing"
@@ -250,6 +240,23 @@ export function AppContent({
                 alignSelf: "center",
               }}
             >
+              {!nested && (
+                <View style={styles.searchRow}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Search workspace"
+                    accessibilityHint="Search pages and assistants"
+                    onPress={() => ss("Search workspace")}
+                    style={styles.searchEntry}
+                  >
+                    <Icon name="search" size={18} color={C.muted} />
+                    <T numberOfLines={1} style={{ color: C.muted, fontSize: 14, flex: 1 }}>
+                      Search workspace…
+                    </T>
+                  </Pressable>
+                  <IB name="message-circle" label="Ask Rik" onPress={() => open("Ask Rik")} />
+                </View>
+              )}
               {current.page === "AI Agents" ? (
                 <MemoAgentHome open={open} />
               ) : current.page === "Agent" ? (
@@ -418,6 +425,25 @@ export function AppContent({
 }
 export default AppContent;
 const styles = StyleSheet.create({
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    width: "100%",
+  },
+  searchEntry: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: C.line,
+    borderRadius: 16,
+    backgroundColor: C.soft,
+  },
   top: {
     flexDirection: "row",
     alignItems: "center",
