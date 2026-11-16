@@ -150,7 +150,11 @@ export function AgentHome({ open }: any) {
         </Sheet>
       )}
       <View style={{ gap: 14 }}>
-        <SearchToolbar label="Search assistants" value={query} onChange={sq} />
+        <SearchToolbar label="Search assistants" value={query} onChange={sq}>
+          <T accessibilityRole="header" style={[s.h2, { paddingVertical: 11 }]}>
+            Your assistants
+          </T>
+        </SearchToolbar>
         {data.agents
           .filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
           .map((a, i) => (
