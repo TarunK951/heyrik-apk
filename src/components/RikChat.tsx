@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Image } from "react-native";
-import { T, Field, Button, Choices, art, C, s } from "../ui";
+import { T, Field, Button, Choices, IB, Sheet, Row, art, C, s } from "../ui";
+import { useStore } from "../store";
 type Message = { role: "you" | "rik"; text: string };
 const topics = [
   {
@@ -33,14 +34,19 @@ const topics = [
   },
 ];
 export function RikChat({ open }: { open: (page: string) => void }) {
+  const { data, set } = useStore();
+  const [id, setId] = useState<string | null>(data.rikChats[0]?.id || null);
+  const [sheet, setSheet] = useState("");
+  const [name, setName] = useState("");
+  const thread = data.rikChats.find((c) => c.id === id);
+  const messages: Message[] = thread?.messages || [];
   const [text, st] = useState(""),
-    [messages, sm] = useState<Message[]>([]),
-    [destination, sd] = useState("");
+    [destination, sd] = useState(thread?.destination || "");
   const send = (query: string) => {
     if (!query.trim()) return;
     const topic = topics.find((t) => t.words.test(query));
-    sm((old) => [
-      ...old,
+    const nextMessages = [
+      ...messages,
       { role: "you", text: query },
       {
         role: "rik",
@@ -48,7 +54,21 @@ export function RikChat({ open }: { open: (page: string) => void }) {
           topic?.answer ||
           "I can help you find agents, phone numbers, campaigns, and billing. Which would you like to work on?",
       },
-    ]);
+    ];
+    const nextId = id || "chat-" + (data.rikChats.length + 1);
+    const nextThread = {
+      id: nextId,
+      name: thread?.name || query.trim().slice(0, 60),
+      messages: nextMessages,
+      destination: topic?.page || "",
+    };
+    set((d) => ({
+      ...d,
+      rikChats: thread
+        ? d.rikChats.map((c) => (c.id === nextId ? nextThread : c))
+        : [nextThread, ...d.rikChats],
+    }));
+    setId(nextId);
     sd(topic?.page || "");
     st("");
   };
@@ -59,16 +79,41 @@ export function RikChat({ open }: { open: (page: string) => void }) {
           source={art.orb}
           style={{ width: 42, height: 42, borderRadius: 21 }}
         />
-        <View style={{ gap: 4 }}>
+        <View style={{ gap: 4, flex: 1, minWidth: 0 }}>
           <T style={s.h2}>Rik</T>
-          <T style={{ fontSize: 12, color: C.muted }}>
-            Your workspace companion
+          <T numberOfLines={1} style={{ fontSize: 12, color: C.muted }}>
+            {thread?.name || "Your workspace companion"}
           </T>
         </View>
+        <IB
+          name="plus"
+          label="New chat"
+          onPress={() => {
+            setId(null);
+            st("");
+            sd("");
+          }}
+        />
+        <IB
+          name="clock"
+          label="Chat history"
+          onPress={() => setSheet("Chat history")}
+        />
       </View>
       <T style={{ fontSize: 11, color: C.muted }}>
         Scripted preview · no AI service connected
       </T>
+      {!!thread && (
+        <Button
+          outline
+          small
+          label="Rename chat"
+          onPress={() => {
+            setName(thread.name);
+            setSheet("Rename chat");
+          }}
+        />
+      )}
       <View style={{ gap: 14 }}>
         <View
           style={{
@@ -107,6 +152,47 @@ export function RikChat({ open }: { open: (page: string) => void }) {
           </View>
         ))}
       </View>
+      {!!sheet && (
+        <Sheet title={sheet} onClose={() => setSheet("")}>
+          {sheet === "Chat history" ? (
+            <>
+              {!data.rikChats.length && (
+                <T style={s.sub}>Your local conversations will appear here.</T>
+              )}
+              {data.rikChats.map((c) => (
+                <Row
+                  key={c.id}
+                  title={c.name}
+                  sub={(c.messages?.length || 0) + " messages · On this device"}
+                  onPress={() => {
+                    setId(c.id);
+                    sd(c.destination || "");
+                    st("");
+                    setSheet("");
+                  }}
+                />
+              ))}
+            </>
+          ) : (
+            <>
+              <Field label="Chat title" value={name} onChangeText={setName} />
+              <Button
+                label="Save title"
+                disabled={!name.trim()}
+                onPress={() => {
+                  set((d) => ({
+                    ...d,
+                    rikChats: d.rikChats.map((c) =>
+                      c.id === id ? { ...c, name: name.trim() } : c,
+                    ),
+                  }));
+                  setSheet("");
+                }}
+              />
+            </>
+          )}
+        </Sheet>
+      )}
       {!messages.length && (
         <Choices items={topics.map((t) => t.title)} value="" onChange={send} />
       )}

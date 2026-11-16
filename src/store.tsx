@@ -13,7 +13,9 @@ import { Agent, makeAgent } from "./catalog";
 export type RecordItem = { id: string; name: string; [key: string]: any };
 type State = {
   preferences: { rikSize: string; haptics: boolean };
-  profile: { name: string; email: string; phone: string };
+  profile: { name: string; email: string; phone: string; photo?: string };
+  charts: RecordItem[];
+  rikChats: RecordItem[];
   onboarded: boolean;
   agents: Agent[];
   leads: RecordItem[];
@@ -33,6 +35,8 @@ type State = {
   favorites: string[];
 };
 const initial: State = {
+  charts: [],
+  rikChats: [],
   preferences: { rikSize: "Medium", haptics: true },
   profile: { name: "Alex", email: "alex@example.com", phone: "" },
   onboarded: false,

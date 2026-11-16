@@ -273,18 +273,20 @@ export function Auth({ onEnter }: { onEnter: () => void }) {
                 <View style={{ gap: 8 }}>
                   <View style={s.between}>
                     <T style={s.label}>Password</T>
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={() => {
-                        sm("forgot");
-                        serr("");
-                      }}
-                      style={{ minHeight: 26, justifyContent: "center" }}
-                    >
-                      <T style={{ fontSize: 12, color: "#666" }}>
-                        Forgot password?
-                      </T>
-                    </Pressable>
+                    {mode === "login" && (
+                      <Pressable
+                        accessibilityRole="button"
+                        onPress={() => {
+                          sm("forgot");
+                          serr("");
+                        }}
+                        style={{ minHeight: 26, justifyContent: "center" }}
+                      >
+                        <T style={{ fontSize: 12, color: "#666" }}>
+                          Forgot password?
+                        </T>
+                      </Pressable>
+                    )}
                   </View>
                   <View
                     style={{

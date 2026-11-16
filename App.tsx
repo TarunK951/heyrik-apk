@@ -71,20 +71,23 @@ export function AppContent({
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => st(""), 3500);
   }, []);
-  const open = useCallback((page: string, param?: string) => {
-    const main = tabHref(page);
-    if (main) {
+  const open = useCallback(
+    (page: string, param?: string) => {
+      const main = tabHref(page);
+      if (main) {
+        ss("");
+        router.navigate(main);
+        return;
+      }
       ss("");
-      router.navigate(main);
-      return;
-    }
-    ss("");
-    sq("");
-    router.push({
-      pathname: "/[page]",
-      params: { page, ...(param ? { agent: param } : {}) },
-    });
-  }, [router]);
+      sq("");
+      router.push({
+        pathname: "/[page]",
+        params: { page, ...(param ? { agent: param } : {}) },
+      });
+    },
+    [router],
+  );
   const back = () => (router.canGoBack() ? router.back() : router.replace("/"));
   const signOut = useCallback(() => {
     signin(false);
@@ -202,7 +205,9 @@ export function AppContent({
                 onPress={() => ss("Account")}
               >
                 <Image
-                  source={art.ember}
+                  source={
+                    data.profile.photo ? { uri: data.profile.photo } : art.ember
+                  }
                   style={{ width: 35, height: 35, borderRadius: 18 }}
                 />
                 <T
@@ -248,7 +253,11 @@ export function AppContent({
               {current.page === "AI Agents" ? (
                 <MemoAgentHome open={open} />
               ) : current.page === "Agent" ? (
-                <MemoAgentEditor id={current.param} open={open} notify={notify} />
+                <MemoAgentEditor
+                  id={current.param}
+                  open={open}
+                  notify={notify}
+                />
               ) : current.page === "More" ? (
                 <>
                   <Heading
@@ -259,15 +268,13 @@ export function AppContent({
                     "Build",
                     "Channels",
                     "Integrations",
-                    "Campaigns",
-                    "Sales",
                     "Insights",
                     "Account",
                   ].map((group) => (
                     <View key={group} style={{ gap: 5 }}>
                       <T style={s.eyebrow}>{group.toUpperCase()}</T>
                       {modules
-                        .filter((m) => m[2] === group)
+                        .filter((m) => m[2] === group && !tabHref(m[0]))
                         .map((m) => (
                           <Pressable
                             key={m[0]}

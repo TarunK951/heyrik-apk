@@ -154,6 +154,7 @@ export const plans = [
   },
 ];
 export type Agent = {
+  appearance?: string;
   id: string;
   name: string;
   brief: string;

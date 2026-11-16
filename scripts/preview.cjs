@@ -4,6 +4,9 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "../dist");
 const types = {
   ".js": "application/javascript",
+  ".css": "text/css",
+  ".svg": "image/svg+xml",
+  ".webp": "image/webp",
   ".html": "text/html",
   ".jpg": "image/jpeg",
   ".png": "image/png",
@@ -23,13 +26,28 @@ http
         res.writeHead(403).end();
         return;
       }
+      if (
+        !fs.existsSync(file) &&
+        new URL(req.url, "http://localhost").pathname.startsWith("/_expo/")
+      ) {
+        res
+          .writeHead(404)
+          .end("Asset unavailable. Refresh after the export finishes.");
+        return;
+      }
       if (!fs.existsSync(file) || fs.statSync(file).isDirectory())
         file = path.join(root, "index.html");
       res.writeHead(200, {
         "Content-Type": types[path.extname(file)] || "application/octet-stream",
         "Cache-Control": "no-cache",
       });
-      fs.createReadStream(file).pipe(res);
+      const stream = fs.createReadStream(file);
+      stream.on("error", () => {
+        if (!res.headersSent)
+          res.writeHead(503).end("Preview is updating. Refresh shortly.");
+        else res.destroy();
+      });
+      stream.pipe(res);
     } catch {
       res.writeHead(400).end();
     }

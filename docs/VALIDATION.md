@@ -33,3 +33,7 @@ Full reference comparison remains bounded by empty live account data. See SCREEN
 - Closed dropdowns no longer mount modal/list content or filter options. Search normalizes the query once per update.
 - Native persistence serializes only after the existing save delay, coalescing rapid edits. Background/timer notifications write each snapshot once; web keeps immediate persistence.
 - Lint, TypeScript, four CSV tests, and production web export passed. No device benchmark or measured FPS improvement is claimed; native device regression testing remains outstanding.
+
+## Website/mobile audit — 2026-11-16
+
+See PAGE-AUDIT-2026-11-16.md for the page-by-page coverage, fixes, measurements and verification limits. Final lint/typecheck pass, CSV tests pass 4/4, and all three platform bundles export. Browser review covers five tabs, twelve secondary modules, six editor sections, billing/settings sections, creation forms and local persistence. Native device behavior remains unverified. No APK was generated.

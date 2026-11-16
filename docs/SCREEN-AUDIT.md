@@ -1,5 +1,7 @@
 # Website → mobile audit
 
+Latest comparison and fixes: [16 November page review](PAGE-AUDIT-2026-11-16.md).
+
 Inspected through the user's signed-in local browser on 14 November 2026. The current account is largely empty; supplied screenshots show another populated account. The repository started empty.
 
 ## Design

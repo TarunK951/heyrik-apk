@@ -13,6 +13,7 @@ import {
   Platform,
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 export const C = {
   ink: "#0b0b0b",
   muted: "#707078",
@@ -171,7 +172,7 @@ export function Section({ title, children, action }: any) {
   return (
     <View style={{ gap: 14 }}>
       <View style={s.between}>
-        <T style={s.h2}>{title}</T>
+        <T style={[s.h2, { flex: 1, minWidth: 0 }]}>{title}</T>
         {action}
       </View>
       {children}
@@ -258,7 +259,7 @@ export function Choices({ items, value, onChange, multiple = false }: any) {
               size={16}
               color={active ? C.ink : "#aaa"}
             />
-            <T style={{ fontSize: 13 }}>{x}</T>
+            <T style={{ fontSize: 13, flexShrink: 1 }}>{x}</T>
           </Pressable>
         );
       })}
@@ -359,16 +360,20 @@ export function Row({
   );
 }
 export function Sheet({ title, sub, children, onClose }: any) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={s.overlay}
       >
-        <View style={s.sheet}>
+        <View
+          accessibilityViewIsModal
+          style={[s.sheet, { paddingBottom: insets.bottom }]}
+        >
           <View style={s.handle} />
           <View style={s.between}>
-            <T style={s.h2}>{title}</T>
+            <T style={[s.h2, { flex: 1, minWidth: 0 }]}>{title}</T>
             <IB name="x" label="Close dialog" onPress={onClose} />
           </View>
           {sub && <T style={s.sub}>{sub}</T>}

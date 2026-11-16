@@ -1,4 +1,9 @@
 import { Select } from "./components/Select";
+import { Analytics } from "./components/Analytics";
+import { OrbPicker, orbSource } from "./components/OrbPicker";
+import { ProfilePhoto } from "./components/ProfilePhoto";
+import { Attachments } from "./components/Attachments";
+import * as Linking from "expo-linking";
 import { RikChat } from "./components/RikChat";
 import { parseCSV } from "./csv";
 import { Planning } from "./Planning";
@@ -48,7 +53,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
                 : "Chatbots",
   );
   const [query, sq] = useState("");
-  const [filter, sf] = useState("All");
+  const [filter, sf] = useState(
+    page === "Knowledge Base" && param
+      ? data.agents.find((a) => a.id === param)?.name || "All"
+      : "All",
+  );
+  const [campaignAgent, setCampaignAgent] = useState("All agents");
   const [sheet, ss] = useState("");
   const [form, sv] = useState<Record<string, any>>(
     page === "Clone Voice" ? { Language: "English", Gender: "Male" } : {},
@@ -96,7 +106,16 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
       </View>
     );
   const start = (name: string, defaults = {}) => {
-    sv(defaults);
+    sv(
+      name === "Billing details"
+        ? {
+            "Invoice email": data.profile.email,
+            ...[...data.transactions]
+              .reverse()
+              .find((t) => t.kind === "details"),
+          }
+        : defaults,
+    );
     sel(null);
     sstep(1);
     ss(name);
@@ -729,8 +748,19 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           onChange={sf}
           compact
         />
+        <Select
+          label="Agent"
+          items={["All agents", ...data.agents.map((a) => a.name)]}
+          value={campaignAgent}
+          onChange={setCampaignAgent}
+          compact
+        />
         {list(
-          data.campaigns.filter((c) => filter === "All" || c.status === filter),
+          data.campaigns.filter(
+            (c) =>
+              (filter === "All" || c.status === filter) &&
+              (campaignAgent === "All agents" || c.Agent === campaignAgent),
+          ),
           "Start your first conversation",
           "Choose an agent, add your contacts, and bring your outreach to life.",
         )}
@@ -1018,46 +1048,7 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
         />
       </>
     );
-  if (page === "Analytics")
-    content = (
-      <>
-        <Heading
-          title="Analytics"
-          sub="Everything across your agents, over your selected period."
-        />
-        <Select
-          label="Agent"
-          items={["All assistants", ...data.agents.map((a) => a.name)]}
-          value={filter === "All" ? "All assistants" : filter}
-          onChange={sf}
-          compact
-        />
-        <Tabs
-          items={["7 days", "14 days", "30 days", "90 days", "Custom"]}
-          value={tab}
-          onChange={st}
-        />
-        {tab === "Custom" && (
-          <Card>
-            {field("Start date", "YYYY-MM-DD")}
-            {field("End date", "YYYY-MM-DD")}
-          </Card>
-        )}
-        <Stats
-          items={[
-            ["Calls handled", "0"],
-            ["Talk time", "0 min"],
-            ["Answer rate", "0%"],
-            ["Credits used", "0"],
-          ]}
-        />
-        <Empty
-          icon="bar-chart-2"
-          title="No calls in this period"
-          sub="Try a wider date range or a different assistant. Once your agents take calls, this page fills with charts."
-        />
-      </>
-    );
+  if (page === "Analytics") content = <Analytics open={open} notify={notify} />;
   if (page === "Billing")
     content = (
       <>
@@ -1133,11 +1124,31 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
               <Row
                 title="Business name"
                 sub={
-                  data.transactions.find((t) => t.kind === "details")?.name ||
-                  "Not added"
+                  [...data.transactions]
+                    .reverse()
+                    .find((t) => t.kind === "details")?.name || "Not added"
                 }
               />
-              <Row title="Invoices emailed to" sub={data.profile.email} />
+              {["GSTIN", "Billing address"].map((key) => (
+                <Row
+                  key={key}
+                  title={key}
+                  sub={
+                    [...data.transactions]
+                      .reverse()
+                      .find((t) => t.kind === "details")?.[key] || "Not added"
+                  }
+                />
+              ))}
+              <Row
+                title="Invoices emailed to"
+                sub={
+                  [...data.transactions]
+                    .reverse()
+                    .find((t) => t.kind === "details")?.["Invoice email"] ||
+                  data.profile.email
+                }
+              />
             </Card>
           </>
         ) : tab === "Plans" ? (
@@ -1246,10 +1257,7 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
         />
         {tab === "Profile" ? (
           <Card>
-            <Image
-              source={art.ember}
-              style={{ width: 70, height: 70, borderRadius: 35 }}
-            />
+            <ProfilePhoto notify={notify} />
             <Field
               label="Full name"
               value={form.Name ?? data.profile.name}
@@ -1279,6 +1287,7 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
                 set((d) => ({
                   ...d,
                   profile: {
+                    ...d.profile,
                     name: form.Name ?? d.profile.name,
                     email: form.Email ?? d.profile.email,
                     phone: form.Phone ?? d.profile.phone,
@@ -1377,6 +1386,14 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             />
             <Row title="My tickets" onPress={() => open("Help & support")} />
             <Row
+              title="Documentation"
+              onPress={() =>
+                Linking.openURL("https://www.heyrik.com/docs").catch(() =>
+                  notify("Unable to open documentation"),
+                )
+              }
+            />
+            <Row
               title="Replay onboarding"
               onPress={() => {
                 set((d) => ({ ...d, onboarded: false }));
@@ -1433,9 +1450,22 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
         <Button
           label="Report an issue"
           icon="flag"
-          onPress={() => start("Report an issue")}
+          onPress={() =>
+            start("Report an issue", { Category: "Bug", Priority: "Normal" })
+          }
         />
         <Button outline label="Ask Rik" onPress={() => open("Ask Rik")} />
+        <Button
+          outline
+          label="Documentation"
+          icon="external-link"
+          onPress={() =>
+            Linking.openURL("https://www.heyrik.com/docs").catch(() =>
+              notify("Unable to open documentation"),
+            )
+          }
+        />
+        <Field placeholder="Search tickets…" value={query} onChangeText={sq} />
         {list(
           data.tickets,
           "No tickets yet",
@@ -1448,17 +1478,25 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
     <>
       {content}
       {!!sheet && (
-        <Sheet
-          title={sheet}
-          onClose={() => ss("")}
-        >
+        <Sheet title={sheet} onClose={() => ss("")}>
           {sheet === "Details" && selected && (
             <>
               <T style={s.h1}>{selected.name}</T>
               {Object.entries(selected)
                 .filter(([k]) => !["id", "uri", "name", "File URI"].includes(k))
                 .map(([k, value]) => (
-                  <Row key={k} title={k} sub={String(value)} />
+                  <Row
+                    key={k}
+                    title={k}
+                    sub={
+                      typeof value === "object" && value
+                        ? Object.entries(value)
+                            .filter(([, v]) => v !== "" && v != null)
+                            .map(([key, v]) => key + ": " + String(v))
+                            .join("\n")
+                        : String(value)
+                    }
+                  />
                 ))}
               {page === "Campaigns" && (
                 <>
@@ -1483,6 +1521,14 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
               )}
               {page === "Chatbot" && (
                 <>
+                  <Button
+                    outline
+                    label="Edit chatbot"
+                    onPress={() => {
+                      sv(selected);
+                      ss("Create chatbot");
+                    }}
+                  />
                   <Button
                     outline
                     label="Preview chat widget"
@@ -1558,7 +1604,11 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
               <Tabs
                 items={["1 · Choose", "2 · Identity", "3 · Review"]}
                 value={["1 · Choose", "2 · Identity", "3 · Review"][step - 1]}
-                onChange={() => {}}
+                onChange={(value: string) => {
+                  const target = Number(value[0]);
+                  if (target <= step) sstep(target);
+                  else notify("Complete this step with Continue first");
+                }}
               />
               {step === 1 ? (
                 <>
@@ -1735,7 +1785,10 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
                 onChange={(x: boolean) => v("Restrict", x)}
               />
               {form.Restrict && field("Allowed domains", "example.com")}
-              {choose("Chatbot avatar", ["Orb 1", "Orb 2", "Orb 3", "Orb 4"])}
+              <OrbPicker
+                value={form["Chatbot avatar"] || "Orb 1"}
+                onChange={(value) => v("Chatbot avatar", value)}
+              />
               {field("Header title")}
               {field("Header subtitle")}
               {field("Greeting", "", true)}
@@ -1743,17 +1796,33 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
               {choose("Launcher position", ["Bottom right", "Bottom left"])}
               {field("Pause after inactivity", "30")}
               <Button
-                label="Create chatbot"
+                label={selected ? "Save chatbot" : "Create chatbot"}
                 disabled={!form.Name?.trim() || !data.agents.length}
-                onPress={() =>
-                  save("bots", { ...form, name: form.Name, status: "Draft" })
-                }
+                onPress={() => {
+                  if (selected) {
+                    set((d) => ({
+                      ...d,
+                      bots: d.bots.map((bot) =>
+                        bot.id === selected.id
+                          ? { ...bot, ...form, name: form.Name }
+                          : bot,
+                      ),
+                    }));
+                    ss("");
+                    notify("Chatbot updated locally");
+                  } else
+                    save("bots", { ...form, name: form.Name, status: "Draft" });
+                }}
               />
             </>
           )}
           {sheet === "Widget preview" && (
             <>
               <Card>
+                <Image
+                  source={orbSource(selected?.["Chatbot avatar"])}
+                  style={{ width: 44, height: 44, borderRadius: 22 }}
+                />
                 <T style={s.h2}>
                   {selected?.["Header title"] || "Chat with us"}
                 </T>
@@ -1855,9 +1924,25 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
                 "From CRM folders",
               ])}
               {form["Contacts source"] === "From CRM folders" ? (
-                <T style={s.sub}>
-                  {data.leads.length} local CRM leads available
-                </T>
+                <>
+                  {choose("CRM folder", [
+                    "All contacts",
+                    ...Array.from(
+                      new Set(data.leads.map((l) => l.folder || "Unfiled")),
+                    ),
+                  ])}
+                  <T style={s.sub}>
+                    {
+                      data.leads.filter(
+                        (l) =>
+                          !form["CRM folder"] ||
+                          form["CRM folder"] === "All contacts" ||
+                          (l.folder || "Unfiled") === form["CRM folder"],
+                      ).length
+                    }{" "}
+                    local CRM leads selected
+                  </T>
+                </>
               ) : (
                 <Button
                   outline
@@ -1866,6 +1951,28 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
                   onPress={() => pick("Sheet")}
                 />
               )}
+              <Button
+                outline
+                small
+                label="Download sample CSV"
+                onPress={() =>
+                  exportCSV(
+                    [
+                      {
+                        id: "sample",
+                        name: "Example lead",
+                        email: "",
+                        phone: "",
+                        company: "",
+                        stage: "New",
+                        value: "",
+                      },
+                    ],
+                    "campaign-sample",
+                    notify,
+                  )
+                }
+              />
               <T style={s.h2}>03 · Calling schedule</T>
               {choose("Start", ["On launch", "Schedule"])}
               {form.Start === "Schedule" &&
@@ -2168,13 +2275,22 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
               <Button
                 label="Save details locally"
                 disabled={!form["Business name"]?.trim()}
-                onPress={() =>
-                  save("transactions", {
-                    name: form["Business name"],
-                    kind: "details",
-                    ...form,
-                  })
-                }
+                onPress={() => {
+                  set((d) => ({
+                    ...d,
+                    transactions: [
+                      ...d.transactions.filter((t) => t.kind !== "details"),
+                      {
+                        ...form,
+                        id: Date.now().toString(),
+                        name: form["Business name"],
+                        kind: "details",
+                      },
+                    ],
+                  }));
+                  ss("");
+                  notify("Billing details saved locally");
+                }}
               />
             </>
           )}
@@ -2211,6 +2327,11 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
                 "Other reference",
                 "Affected page",
               ].map((k) => field(k))}
+              <Attachments
+                value={form.Attachments || []}
+                onChange={(files) => v("Attachments", files)}
+                notify={notify}
+              />
               <Button
                 label="Save demo ticket"
                 disabled={!form.Subject?.trim() || !form.Description?.trim()}
@@ -2259,7 +2380,7 @@ async function exportCSV(
       const { File, Paths } = await import("expo-file-system");
       const Sharing = await import("expo-sharing");
       const file = new File(Paths.cache, name + ".csv");
-      file.write(csv);
+      await file.write(csv);
       await Sharing.shareAsync(file.uri, { mimeType: "text/csv" });
     } catch {
       notify("Export is unavailable on this device");

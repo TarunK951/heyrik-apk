@@ -1,5 +1,6 @@
 import { Disclosure } from "./components/Disclosure";
 import { Select } from "./components/Select";
+import { OrbPicker, orbSource } from "./components/OrbPicker";
 import React, { useState } from "react";
 import { View, Image, Pressable } from "react-native";
 import * as Speech from "expo-speech";
@@ -159,7 +160,13 @@ export function AgentHome({ open }: any) {
             <Card key={a.id}>
               <View style={s.between}>
                 <Image
-                  source={i % 2 ? art.cobalt : art.orb}
+                  source={
+                    a.appearance
+                      ? orbSource(a.appearance)
+                      : i % 2
+                        ? art.cobalt
+                        : art.orb
+                  }
                   style={{ width: 46, height: 46, borderRadius: 23 }}
                 />
                 <Badge label={a.live ? "Live" : "Draft"} green={a.live} />
@@ -297,12 +304,20 @@ export function AgentEditor({ id, open, notify }: any) {
   return (
     <>
       <View style={s.between}>
-        <Image
-          source={art.orb}
-          style={{ width: 45, height: 45, borderRadius: 23 }}
-        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Change assistant appearance"
+          onPress={() => ss("Appearance")}
+        >
+          <Image
+            source={orbSource(a.appearance)}
+            style={{ width: 45, height: 45, borderRadius: 23 }}
+          />
+        </Pressable>
         <View style={{ flex: 1 }}>
-          <T style={s.h2}>{a.name}</T>
+          <T numberOfLines={2} style={s.h2}>
+            {a.name}
+          </T>
           <T style={{ fontSize: 11, color: C.green }}>Saved</T>
         </View>
         <Button
@@ -321,7 +336,10 @@ export function AgentEditor({ id, open, notify }: any) {
         label="Agent section"
         value={tab}
         items={editorTabs}
-        onChange={st}
+        onChange={(value) => {
+          sq("");
+          st(value);
+        }}
         compact
       />
       {tab === "Details" && (
@@ -344,7 +362,7 @@ export function AgentEditor({ id, open, notify }: any) {
               }
             >
               <View style={s.between}>
-                <View style={{ gap: 5 }}>
+                <View style={{ gap: 5, flex: 1, minWidth: 0 }}>
                   <T style={s.h2}>{a.voice}</T>
                   <T style={s.sub}>
                     This is the voice your assistant speaks with.
@@ -373,10 +391,52 @@ export function AgentEditor({ id, open, notify }: any) {
             </T>
             {a.sections.map((section, i) => (
               <Card key={i}>
-                <View style={s.between}>
-                  <T style={{ fontFamily: "GeistSemi", flex: 1 }}>
-                    {section.title}
-                  </T>
+                <Field
+                  label="Section title"
+                  value={section.title}
+                  onChangeText={(title: string) =>
+                    patch({
+                      sections: a.sections.map((x, j) =>
+                        j === i ? { ...x, title } : x,
+                      ),
+                    })
+                  }
+                />
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 10,
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  {i > 0 && (
+                    <IB
+                      name="arrow-up"
+                      label={"Move " + section.title + " up"}
+                      onPress={() => {
+                        const sections = [...a.sections];
+                        [sections[i - 1], sections[i]] = [
+                          sections[i],
+                          sections[i - 1],
+                        ];
+                        patch({ sections });
+                      }}
+                    />
+                  )}
+                  {i < a.sections.length - 1 && (
+                    <IB
+                      name="arrow-down"
+                      label={"Move " + section.title + " down"}
+                      onPress={() => {
+                        const sections = [...a.sections];
+                        [sections[i + 1], sections[i]] = [
+                          sections[i],
+                          sections[i + 1],
+                        ];
+                        patch({ sections });
+                      }}
+                    />
+                  )}
                   <IB
                     name="trash-2"
                     label={"Delete " + section.title}
@@ -386,6 +446,7 @@ export function AgentEditor({ id, open, notify }: any) {
                   />
                 </View>
                 <Field
+                  label={section.title + " instructions"}
                   multiline
                   value={section.text}
                   onChangeText={(v: string) =>
@@ -421,6 +482,11 @@ export function AgentEditor({ id, open, notify }: any) {
       {tab === "Variables" && (
         <>
           <Tabs items={["Input", "Output"]} value={varType} onChange={svt} />
+          <Field
+            placeholder="Search variables…"
+            value={query}
+            onChangeText={sq}
+          />
           <Heading
             title={varType + " variables"}
             sub={
@@ -430,7 +496,11 @@ export function AgentEditor({ id, open, notify }: any) {
             }
           />
           {a.variables
-            .filter((x) => x.type === varType)
+            .filter(
+              (x) =>
+                x.type === varType &&
+                x.name.toLowerCase().includes(query.toLowerCase()),
+            )
             .map((v, i) => (
               <Card key={i}>
                 <Row
@@ -576,8 +646,17 @@ export function AgentEditor({ id, open, notify }: any) {
             icon="book-open"
             onPress={() => open("Knowledge Base", id)}
           />
+          <Field
+            placeholder="Search sources…"
+            value={query}
+            onChangeText={sq}
+          />
           {data.files
-            .filter((f) => f.agent === id)
+            .filter(
+              (f) =>
+                f.agent === id &&
+                f.name.toLowerCase().includes(query.toLowerCase()),
+            )
             .map((f) => (
               <Card key={f.id}>
                 <T>{f.name}</T>
@@ -621,7 +700,9 @@ export function AgentEditor({ id, open, notify }: any) {
               ["Calls handled", "0"],
               ["People reached", "0"],
               ["Total talk time", "0s"],
+              ["Avg. call length", "—"],
               ["Answer rate", "0%"],
+              ["In / Out", "0 · 0"],
             ]}
           />
           <Empty
@@ -642,6 +723,12 @@ export function AgentEditor({ id, open, notify }: any) {
             sTesting(false);
           }}
         >
+          {sheet === "Appearance" && (
+            <OrbPicker
+              value={a.appearance || "Orb 1"}
+              onChange={(appearance) => patch({ appearance })}
+            />
+          )}
           {sheet === "Languages" && (
             <>
               <Choices
@@ -649,6 +736,19 @@ export function AgentEditor({ id, open, notify }: any) {
                 value={a.languages}
                 multiple
                 onChange={(v: string[]) => v.length && patch({ languages: v })}
+              />
+              <Select
+                label="Primary language"
+                items={a.languages}
+                value={a.languages[0]}
+                onChange={(language) =>
+                  patch({
+                    languages: [
+                      language,
+                      ...a.languages.filter((x) => x !== language),
+                    ],
+                  })
+                }
               />
               <Button label="Done" onPress={() => ss("")} />
             </>
@@ -667,14 +767,7 @@ export function AgentEditor({ id, open, notify }: any) {
               />
               <Select
                 label="Language"
-                items={[
-                  "All languages",
-                  "English",
-                  "Telugu",
-                  "Hindi",
-                  "Tamil",
-                  "French",
-                ]}
+                items={["All languages", ...languages]}
                 value={lang}
                 onChange={sl}
                 compact

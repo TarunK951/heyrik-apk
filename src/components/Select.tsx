@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { tapFeedback } from "../feedback";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 type Props = {
   label: string;
   value: string;
@@ -29,14 +30,14 @@ export function Select({
   const [open, so] = useState(false),
     [query, sq] = useState("");
   const { height } = useWindowDimensions();
-  const filtered = useMemo(
-    () => {
-      if (!open) return [];
-      const search = query.trim().toLowerCase();
-      return search ? items.filter((x) => x.toLowerCase().includes(search)) : items;
-    },
-    [items, query, open],
-  );
+  const insets = useSafeAreaInsets();
+  const filtered = useMemo(() => {
+    if (!open) return [];
+    const search = query.trim().toLowerCase();
+    return search
+      ? items.filter((x) => x.toLowerCase().includes(search))
+      : items;
+  }, [items, query, open]);
   return (
     <View style={{ flexShrink: 1, minWidth: 0, gap: 7 }}>
       {!compact && (
@@ -74,141 +75,148 @@ export function Select({
         </Text>
         <Feather name="chevron-down" size={16} color="#777" />
       </Pressable>
-      {open && <Modal
-        visible={open}
-        transparent
-        animationType="fade"
-        onRequestClose={() => so(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{
-            flex: 1,
-            justifyContent: "flex-end",
-            alignItems: "center",
-            backgroundColor: "#0005",
-          }}
+      {open && (
+        <Modal
+          visible={open}
+          transparent
+          animationType="fade"
+          onRequestClose={() => so(false)}
         >
-          <Pressable
-            accessibilityLabel="Dismiss selection"
-            onPress={() => so(false)}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
-          />
-          <View
-            accessibilityViewIsModal
-            style={{
-              backgroundColor: "white",
-              width: "100%",
-              maxWidth: 560,
-              borderTopLeftRadius: 28,
-              borderTopRightRadius: 28,
-              padding: 22,
-              paddingBottom: 32,
-              maxHeight: height * 0.78,
-              gap: 15,
+              flex: 1,
+              justifyContent: "flex-end",
+              alignItems: "center",
+              backgroundColor: "#0005",
             }}
           >
-            <View
+            <Pressable
+              accessibilityLabel="Dismiss selection"
+              onPress={() => so(false)}
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+            <View
+              accessibilityViewIsModal
+              style={{
+                backgroundColor: "white",
+                width: "100%",
+                maxWidth: 560,
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+                padding: 22,
+                paddingBottom: Math.max(32, insets.bottom + 12),
+                maxHeight: height * 0.78,
+                gap: 15,
               }}
             >
-              <Text
-                accessibilityRole="header"
-                style={{ fontFamily: "GeistSemi", fontSize: 20 }}
-              >
-                {label}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Close selection"
-                onPress={() => so(false)}
+              <View
                 style={{
-                  width: 44,
-                  height: 44,
+                  flexDirection: "row",
                   alignItems: "center",
-                  justifyContent: "center",
+                  justifyContent: "space-between",
                 }}
               >
-                <Feather name="x" size={20} />
-              </Pressable>
-            </View>
-            {items.length > 6 && (
-              <TextInput
-                accessibilityLabel={"Search " + label.toLowerCase()}
-                placeholder="Search options…"
-                value={query}
-                onChangeText={sq}
-                autoCapitalize="none"
-                style={{
-                  height: 46,
-                  paddingHorizontal: 14,
-                  borderWidth: 1,
-                  borderColor: "#e5e5e7",
-                  borderRadius: 14,
-                  fontFamily: "Geist",
-                  fontSize: 14,
-                }}
-              />
-            )}
-            <FlatList
-              data={filtered}
-              keyExtractor={(x) => x}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              style={{ flexGrow: 0 }}
-              initialNumToRender={12}
-              maxToRenderPerBatch={12}
-              ListEmptyComponent={
                 <Text
-                  style={{ fontFamily: "Geist", padding: 15, color: "#888" }}
-                >
-                  No matching options
-                </Text>
-              }
-              renderItem={({ item }) => (
-                <Pressable
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: item === value }}
-                  accessibilityLabel={item}
-                  onPress={() => {
-                    tapFeedback();
-                    onChange(item);
-                    so(false);
-                  }}
+                  accessibilityRole="header"
                   style={{
-                    minHeight: 52,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 15,
-                    borderBottomWidth: 1,
-                    borderColor: "#f1f1f2",
+                    fontFamily: "GeistSemi",
+                    fontSize: 20,
+                    flex: 1,
+                    minWidth: 0,
                   }}
                 >
+                  {label}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Close selection"
+                  onPress={() => so(false)}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="x" size={20} />
+                </Pressable>
+              </View>
+              {items.length > 6 && (
+                <TextInput
+                  accessibilityLabel={"Search " + label.toLowerCase()}
+                  placeholder="Search options…"
+                  value={query}
+                  onChangeText={sq}
+                  autoCapitalize="none"
+                  style={{
+                    height: 46,
+                    paddingHorizontal: 14,
+                    borderWidth: 1,
+                    borderColor: "#e5e5e7",
+                    borderRadius: 14,
+                    fontFamily: "Geist",
+                    fontSize: 14,
+                  }}
+                />
+              )}
+              <FlatList
+                data={filtered}
+                keyExtractor={(x) => x}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                style={{ flexGrow: 0 }}
+                initialNumToRender={12}
+                maxToRenderPerBatch={12}
+                ListEmptyComponent={
                   <Text
+                    style={{ fontFamily: "Geist", padding: 15, color: "#888" }}
+                  >
+                    No matching options
+                  </Text>
+                }
+                renderItem={({ item }) => (
+                  <Pressable
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: item === value }}
+                    accessibilityLabel={item}
+                    onPress={() => {
+                      tapFeedback();
+                      onChange(item);
+                      so(false);
+                    }}
                     style={{
-                      flex: 1,
-                      fontFamily: item === value ? "GeistSemi" : "Geist",
-                      fontSize: 14,
+                      minHeight: 52,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 15,
+                      borderBottomWidth: 1,
+                      borderColor: "#f1f1f2",
                     }}
                   >
-                    {item}
-                  </Text>
-                  {item === value && <Feather name="check" size={18} />}
-                </Pressable>
-              )}
-            />
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>}
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontFamily: item === value ? "GeistSemi" : "Geist",
+                        fontSize: 14,
+                      }}
+                    >
+                      {item}
+                    </Text>
+                    {item === value && <Feather name="check" size={18} />}
+                  </Pressable>
+                )}
+              />
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+      )}
     </View>
   );
 }
