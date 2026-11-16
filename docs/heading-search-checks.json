@@ -1,0 +1,219 @@
+[
+  {
+    "page": "Agents",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Calls",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "CRM",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Outreach",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Agents",
+    "requestedWidth": 393,
+    "sameRow": true,
+    "contentWidth": 394,
+    "width": 394
+  },
+  {
+    "page": "Calls",
+    "requestedWidth": 393,
+    "sameRow": true,
+    "contentWidth": 394,
+    "width": 394
+  },
+  {
+    "page": "CRM",
+    "requestedWidth": 393,
+    "sameRow": true,
+    "contentWidth": 394,
+    "width": 394
+  },
+  {
+    "page": "Outreach",
+    "requestedWidth": 393,
+    "sameRow": true,
+    "contentWidth": 394,
+    "width": 394
+  },
+  {
+    "page": "Agents",
+    "requestedWidth": 430,
+    "sameRow": true,
+    "contentWidth": 430,
+    "width": 430
+  },
+  {
+    "page": "Calls",
+    "requestedWidth": 430,
+    "sameRow": true,
+    "contentWidth": 430,
+    "width": 430
+  },
+  {
+    "page": "CRM",
+    "requestedWidth": 430,
+    "sameRow": true,
+    "contentWidth": 430,
+    "width": 430
+  },
+  {
+    "page": "Outreach",
+    "requestedWidth": 430,
+    "sameRow": true,
+    "contentWidth": 430,
+    "width": 430
+  },
+  {
+    "page": "Knowledge Base",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Knowledge Base",
+    "requestedWidth": 393,
+    "sameRow": true,
+    "contentWidth": 394,
+    "width": 394
+  },
+  {
+    "page": "Knowledge Base",
+    "requestedWidth": 430,
+    "sameRow": true,
+    "contentWidth": 430,
+    "width": 430
+  },
+  {
+    "page": "Connections",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Connections",
+    "requestedWidth": 393,
+    "sameRow": true,
+    "contentWidth": 394,
+    "width": 394
+  },
+  {
+    "page": "Connections",
+    "requestedWidth": 430,
+    "sameRow": true,
+    "contentWidth": 430,
+    "width": 430
+  },
+  {
+    "page": "Chatbot",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Chatbot",
+    "requestedWidth": 393,
+    "sameRow": true,
+    "contentWidth": 394,
+    "width": 394
+  },
+  {
+    "page": "Chatbot",
+    "requestedWidth": 430,
+    "sameRow": true,
+    "contentWidth": 430,
+    "width": 430
+  },
+  {
+    "page": "Help & support",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Help & support",
+    "requestedWidth": 393,
+    "sameRow": true,
+    "contentWidth": 394,
+    "width": 394
+  },
+  {
+    "page": "Help & support",
+    "requestedWidth": 430,
+    "sameRow": true,
+    "contentWidth": 430,
+    "width": 430
+  },
+  {
+    "page": "Voice library",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Voice library",
+    "requestedWidth": 393,
+    "sameRow": true,
+    "contentWidth": 394,
+    "width": 394
+  },
+  {
+    "page": "Voice library",
+    "requestedWidth": 430,
+    "sameRow": true,
+    "contentWidth": 430,
+    "width": 430
+  },
+  {
+    "page": "Chart dialog",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Agent variables",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Agent knowledge",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  },
+  {
+    "page": "Voice picker",
+    "requestedWidth": 320,
+    "sameRow": true,
+    "contentWidth": 320,
+    "width": 320
+  }
+]

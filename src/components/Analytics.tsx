@@ -247,6 +247,7 @@ export function Analytics({
           {sheet === "Add a chart" && (
             <>
               <SearchToolbar
+                title="Chart library"
                 label="Search charts"
                 value={search}
                 onChange={setSearch}

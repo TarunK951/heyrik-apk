@@ -1,22 +1,40 @@
 import React, { useState } from "react";
 import { View, Pressable } from "react-native";
-import { Field, Icon, C } from "../ui";
+import { Field, Icon, T, s, C } from "../ui";
 import { tapFeedback } from "../feedback";
 
 export function SearchToolbar({
   label,
+  title,
   value,
   onChange,
   children,
   actions,
 }: {
   label: string;
+  title?: string;
   value: string;
   onChange: (value: string) => void;
   children?: React.ReactNode;
   actions?: React.ReactNode;
 }) {
   const [expanded, setExpanded] = useState(!!value);
+  const filters = children ? (
+    <View
+      style={{
+        flex: title ? undefined : 1,
+        minWidth: 0,
+        flexDirection: "row",
+        gap: 8,
+      }}
+    >
+      {React.Children.map(
+        children,
+        (child) =>
+          child && <View style={{ flex: 1, minWidth: 0 }}>{child}</View>,
+      )}
+    </View>
+  ) : null;
   return (
     <View
       style={{
@@ -34,13 +52,16 @@ export function SearchToolbar({
           minWidth: 0,
         }}
       >
-        <View style={{ flex: 1, minWidth: 0, flexDirection: "row", gap: 8 }}>
-          {React.Children.map(
-            children,
-            (child) =>
-              child && <View style={{ flex: 1, minWidth: 0 }}>{child}</View>,
-          )}
-        </View>
+        {title ? (
+          <T
+            accessibilityRole="header"
+            style={[s.h2, { flex: 1, minWidth: 0 }]}
+          >
+            {title}
+          </T>
+        ) : (
+          filters || <View style={{ flex: 1 }} />
+        )}
         {actions}
         <Pressable
           accessibilityRole="button"
@@ -65,6 +86,7 @@ export function SearchToolbar({
           <Icon name={expanded ? "x" : "search"} size={18} />
         </Pressable>
       </View>
+      {!!title && filters}
       {expanded && (
         <Field
           accessibilityLabel={label}

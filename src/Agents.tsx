@@ -150,11 +150,12 @@ export function AgentHome({ open }: any) {
         </Sheet>
       )}
       <View style={{ gap: 14 }}>
-        <SearchToolbar label="Search assistants" value={query} onChange={sq}>
-          <T accessibilityRole="header" style={[s.h2, { paddingVertical: 11 }]}>
-            Your assistants
-          </T>
-        </SearchToolbar>
+        <SearchToolbar
+          title="Your assistants"
+          label="Search assistants"
+          value={query}
+          onChange={sq}
+        />
         {data.agents
           .filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
           .map((a, i) => (
@@ -482,7 +483,12 @@ export function AgentEditor({ id, open, notify }: any) {
       )}
       {tab === "Variables" && (
         <>
-          <SearchToolbar label="Search variables" value={query} onChange={sq}>
+          <SearchToolbar
+            title={varType + " variables"}
+            label="Search variables"
+            value={query}
+            onChange={sq}
+          >
             <Select
               label="Variable type"
               items={["Input", "Output"]}
@@ -491,14 +497,11 @@ export function AgentEditor({ id, open, notify }: any) {
               compact
             />
           </SearchToolbar>
-          <Heading
-            title={varType + " variables"}
-            sub={
-              varType === "Input"
-                ? "Known before the call. Use {{name}} in your instructions; the default is used when no value is supplied."
-                : "Details your agent should capture during the call."
-            }
-          />
+          <T style={s.sub}>
+            {varType === "Input"
+              ? "Known before the call. Use {{name}} in your instructions; the default is used when no value is supplied."
+              : "Details your agent should capture during the call."}
+          </T>
           {a.variables
             .filter(
               (x) =>
@@ -650,7 +653,12 @@ export function AgentEditor({ id, open, notify }: any) {
             icon="book-open"
             onPress={() => open("Knowledge Base", id)}
           />
-          <SearchToolbar label="Search sources" value={query} onChange={sq} />
+          <SearchToolbar
+            title="Sources"
+            label="Search sources"
+            value={query}
+            onChange={sq}
+          />
           {data.files
             .filter(
               (f) =>
@@ -760,7 +768,12 @@ export function AgentEditor({ id, open, notify }: any) {
                 value={voiceTab}
                 onChange={svTab}
               />
-              <SearchToolbar label="Search voices" value={query} onChange={sq}>
+              <SearchToolbar
+                title="Voices"
+                label="Search voices"
+                value={query}
+                onChange={sq}
+              >
                 <Select
                   label="Language"
                   items={["All languages", ...languages]}

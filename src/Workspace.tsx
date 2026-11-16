@@ -299,7 +299,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           </>
         ) : (
           <>
-            <SearchToolbar label="Search voices" value={query} onChange={sq}>
+            <SearchToolbar
+              title="Voice library"
+              label="Search voices"
+              value={query}
+              onChange={sq}
+            >
               <Select
                 label="Language"
                 items={["All languages", ...languages]}
@@ -421,7 +426,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             ],
           ]}
         />
-        <SearchToolbar label="Search files" value={query} onChange={sq}>
+        <SearchToolbar
+          title="Sources"
+          label="Search files"
+          value={query}
+          onChange={sq}
+        >
           <Select
             label="Agent"
             items={["All", ...data.agents.map((a) => a.name)]}
@@ -609,7 +619,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             })
           }
         />
-        <SearchToolbar label="Search chatbots" value={query} onChange={sq}>
+        <SearchToolbar
+          title={tab === "Chatbots" ? "Chatbots" : "Conversations"}
+          label="Search chatbots"
+          value={query}
+          onChange={sq}
+        >
           <Select
             label="Chatbot view"
             items={["Chatbots", "Conversations"]}
@@ -640,7 +655,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           title="Connections"
           sub="Bring your tools into the conversation."
         />
-        <SearchToolbar label="Search integrations" value={query} onChange={sq}>
+        <SearchToolbar
+          title="App directory"
+          label="Search integrations"
+          value={query}
+          onChange={sq}
+        >
           <Select
             label="Connection status"
             items={["All", "Connected"]}
@@ -747,7 +767,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             ["Calls in progress", "0"],
           ]}
         />
-        <SearchToolbar label="Search campaigns" value={query} onChange={sq}>
+        <SearchToolbar
+          title="Your campaigns"
+          label="Search campaigns"
+          value={query}
+          onChange={sq}
+        >
           <Select
             label="Status"
             items={["All", "Draft", "Scheduled", "Paused", "Completed"]}
@@ -828,6 +853,7 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           ]}
         />
         <SearchToolbar
+          title="Leads"
           label="Search leads"
           value={query}
           onChange={sq}
@@ -990,7 +1016,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
           title="Call logs"
           sub="Review conversations, outcomes and recordings in one place."
         />
-        <SearchToolbar label="Search call logs" value={query} onChange={sq}>
+        <SearchToolbar
+          title="Call history"
+          label="Search call logs"
+          value={query}
+          onChange={sq}
+        >
           <View style={{ flex: 1, minWidth: 0 }}>
             <Select
               label="Agent"
@@ -1475,7 +1506,12 @@ export function Workspace({ page, param, open, notify, signOut }: any) {
             )
           }
         />
-        <SearchToolbar label="Search tickets" value={query} onChange={sq} />
+        <SearchToolbar
+          title="Your tickets"
+          label="Search tickets"
+          value={query}
+          onChange={sq}
+        />
         {list(
           data.tickets,
           "No tickets yet",
